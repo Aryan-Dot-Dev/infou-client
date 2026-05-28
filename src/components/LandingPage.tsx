@@ -5,6 +5,8 @@ import { Magnet } from "./ui/Magnet";
 import { Grainient } from "./ui/Grainient";
 import { ClickSpark } from "./ui/ClickSpark";
 import indiaStatesData from "../data/india_states_compressed.json";
+import { AnimatedCounter } from "./ui/Counter";
+import { Testimonials } from "./ui/Testimonials";
 
 // Map projection math: India boundaries
 // Lon: [68.187, 97.378], Lat: [6.757, 37.074]
@@ -193,19 +195,27 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-20 py-12">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="flex flex-col text-left">
-              <span className="font-sans text-4xl md:text-5xl font-extrabold text-black mb-1">130+</span>
+              <span className="font-sans text-4xl md:text-5xl font-extrabold text-black mb-1 flex items-center h-[36px] md:h-[48px]">
+                <AnimatedCounter value="130+" fontSize={36} mdFontSize={48} fontWeight={800} textColor="black" />
+              </span>
               <span className="font-sans text-[10px] tracking-widest text-zinc-400 font-bold uppercase">Active Schemes</span>
             </div>
             <div className="flex flex-col text-left">
-              <span className="font-sans text-4xl md:text-5xl font-extrabold text-black mb-1">28</span>
+              <span className="font-sans text-4xl md:text-5xl font-extrabold text-black mb-1 flex items-center h-[36px] md:h-[48px]">
+                <AnimatedCounter value="28" fontSize={36} mdFontSize={48} fontWeight={800} textColor="black" />
+              </span>
               <span className="font-sans text-[10px] tracking-widest text-zinc-400 font-bold uppercase">States Mapped</span>
             </div>
             <div className="flex flex-col text-left">
-              <span className="font-sans text-4xl md:text-5xl font-extrabold text-black mb-1">₹42B</span>
+              <span className="font-sans text-4xl md:text-5xl font-extrabold text-black mb-1 flex items-center h-[36px] md:h-[48px]">
+                <AnimatedCounter value="₹42B" fontSize={36} mdFontSize={48} fontWeight={800} textColor="black" />
+              </span>
               <span className="font-sans text-[10px] tracking-widest text-zinc-400 font-bold uppercase">Capital Optimized</span>
             </div>
             <div className="flex flex-col text-left">
-              <span className="font-sans text-4xl md:text-5xl font-extrabold text-black mb-1">0%</span>
+              <span className="font-sans text-4xl md:text-5xl font-extrabold text-black mb-1 flex items-center h-[36px] md:h-[48px]">
+                <AnimatedCounter value="0%" fontSize={36} mdFontSize={48} fontWeight={800} textColor="black" />
+              </span>
               <span className="font-sans text-[10px] tracking-widest text-zinc-400 font-bold uppercase">Compliance Error</span>
             </div>
           </div>
@@ -298,24 +308,42 @@ export function LandingPage() {
                       <span className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">
                         Capital Optimized
                       </span>
-                      <span className="text-xl md:text-2xl font-bold text-white tracking-tight font-mono">
-                        {getStateData(activeRegion).funds}
+                      <span className="text-xl md:text-2xl font-bold text-white tracking-tight font-mono flex items-center h-[20px] md:h-[24px]">
+                        <AnimatedCounter
+                          value={getStateData(activeRegion).funds}
+                          fontSize={20}
+                          mdFontSize={24}
+                          fontWeight={700}
+                          textColor="white"
+                        />
                       </span>
                     </div>
                     <div className="flex justify-between items-center border-b border-zinc-900 pb-3">
                       <span className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">
                         Incubation Hubs
                       </span>
-                      <span className="text-xl md:text-2xl font-bold text-white tracking-tight font-mono">
-                        {getStateData(activeRegion).centers}
+                      <span className="text-xl md:text-2xl font-bold text-white tracking-tight font-mono flex items-center h-[20px] md:h-[24px]">
+                        <AnimatedCounter
+                          value={getStateData(activeRegion).centers}
+                          fontSize={20}
+                          mdFontSize={24}
+                          fontWeight={700}
+                          textColor="white"
+                        />
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">
                         Success Audit
                       </span>
-                      <span className="text-xl md:text-2xl font-bold text-emerald-400 tracking-tight font-mono">
-                        {getStateData(activeRegion).success}
+                      <span className="text-xl md:text-2xl font-bold text-emerald-400 tracking-tight font-mono flex items-center h-[20px] md:h-[24px]">
+                        <AnimatedCounter
+                          value={getStateData(activeRegion).success}
+                          fontSize={20}
+                          mdFontSize={24}
+                          fontWeight={700}
+                          textColor="#34d399"
+                        />
                       </span>
                     </div>
                   </div>
@@ -373,6 +401,8 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      <Testimonials />
 
       {/* CTA Section */}
       <section className="px-6 md:px-20 py-24 text-center bg-white">

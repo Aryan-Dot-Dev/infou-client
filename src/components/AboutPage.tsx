@@ -2,6 +2,7 @@ import React, { useTransition } from "react";
 import { navigateTo, navigateToDelayed } from "../lib/router";
 import { SpotlightCard } from "./ui/SpotlightCard";
 import ClickSpark from "./ui/ClickSpark";
+import { AnimatedCounter } from "./ui/Counter";
 
 export function AboutPage() {
   const [, startTransition] = useTransition();
@@ -95,8 +96,14 @@ export function AboutPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, idx) => (
             <div key={idx} className="border border-zinc-200 rounded-xl p-6 md:p-8 bg-white text-left">
-              <div className="font-sans text-3xl md:text-4xl font-extrabold text-black mb-2">
-                {stat.value}
+              <div className="font-sans text-3xl md:text-4xl font-extrabold text-black mb-2 flex items-center h-[36px] md:h-[44px]">
+                <AnimatedCounter
+                  value={stat.value}
+                  fontSize={30}
+                  mdFontSize={36}
+                  fontWeight={800}
+                  textColor="black"
+                />
               </div>
               <div className="font-sans text-[10px] tracking-widest text-zinc-400 font-bold uppercase">
                 {stat.label}
