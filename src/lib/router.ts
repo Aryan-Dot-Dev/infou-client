@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-export type RoutePath = "landing" | "services" | "about" | "blog" | "contact" | "assessment";
+export type RoutePath = "landing" | "services" | "blog" | "assessment";
 
 /**
  * Custom React hook to subscribe to browser hash routing changes (popstate / hashchange).
@@ -17,8 +17,11 @@ export function useHashLocation(): RoutePath {
       const hash = window.location.hash.replace("#/", "");
       setRoute(isValidRoute(hash) ? hash : "landing");
       
-      // Smooth scroll to top on page change
-      window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+      // Smooth scroll to top on page change, unless navigating to a section anchor
+      const hasSectionHash = window.location.hash.slice(2).includes("#");
+      if (!hasSectionHash) {
+        window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+      }
     };
 
     window.addEventListener("hashchange", handleHashChange);
@@ -35,7 +38,7 @@ export function useHashLocation(): RoutePath {
 }
 
 function isValidRoute(hash: string): hash is RoutePath {
-  return ["landing", "services", "about", "blog", "contact", "assessment"].includes(hash);
+  return ["landing", "services", "blog", "assessment"].includes(hash);
 }
 
 export function navigateTo(path: RoutePath) {

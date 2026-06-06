@@ -6,6 +6,7 @@ import { Textarea } from "./ui/textarea";
 import ClickSpark from "./ui/ClickSpark";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { navigateTo } from "../lib/router";
+import Stepper, { Step } from "./ui/Stepper";
 
 interface AssessmentModalProps {
   isOpen: boolean;
@@ -29,6 +30,9 @@ export function AssessmentModal({ isOpen, onClose, source, onSubmitSuccess }: As
   const [isSuccess, setIsSuccess] = useState(false);
   const [generatedPayload, setGeneratedPayload] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+
+  // Stepper state tracking
+  const [currentStepIndex, setCurrentStepIndex] = useState(1);
 
   // New API-specific recommendation states
   const [recommendations, setRecommendations] = useState<any[] | null>(null);
@@ -55,53 +59,94 @@ export function AssessmentModal({ isOpen, onClose, source, onSubmitSuccess }: As
       setApiError(null);
       setShowPayload(false);
       setRequestPayload(null);
+      setCurrentStepIndex(1);
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  // Instant field-level validation for responsive UX feedback
+  const validateField = (fieldName: string, value: string) => {
+    let errorMsg = "";
+    if (fieldName === "name" && !value.trim()) {
+      errorMsg = "Full name is required";
+    } else if (fieldName === "email") {
+      if (!value.trim()) {
+        errorMsg = "Corporate email is required";
+      } else if (!/\S+@\S+\.\S+/.test(value)) {
+        errorMsg = "Please enter a valid email address";
+      }
+    } else if (fieldName === "phone") {
+      if (!value.trim()) {
+        errorMsg = "Contact number is required";
+      } else if (!/^[+0-9\s-]{8,20}$/.test(value)) {
+        errorMsg = "Please enter a valid contact number";
+      }
+    } else if (fieldName === "businessName" && !value.trim()) {
+      errorMsg = "Business/Company name is required";
+    } else if (fieldName === "businessDescription" && !value.trim()) {
+      errorMsg = "Business summary is required";
+    }
+
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (errorMsg) {
+        next[fieldName] = errorMsg;
+      } else {
+        delete next[fieldName];
+      }
+      return next;
+    });
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next[name];
-        return next;
-      });
-    }
+    validateField(name, value);
   };
 
-  const validate = () => {
-    const newErrors: Record<string, string> = {};
-    if (!formData.name.trim()) newErrors.name = "Full name is required";
-    
-    if (!formData.email.trim()) {
-      newErrors.email = "Corporate email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Contact number is required";
-    } else if (!/^[+0-9\s-]{8,20}$/.test(formData.phone)) {
-      newErrors.phone = "Please enter a valid contact number";
-    }
-
-    if (!formData.businessName.trim()) newErrors.businessName = "Business/Company name is required";
-    if (!formData.businessType) newErrors.businessType = "Please select a business vertical";
-    if (!formData.businessDescription.trim()) newErrors.businessDescription = "Business summary is required";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  // Step validation helpers to dynamically control the "Continue" stepper button
+  const isStep1Valid = () => {
+    const emailRegex = /\S+@\S+\.\S+/;
+    return (
+      formData.name.trim() !== "" &&
+      !errors.name &&
+      formData.email.trim() !== "" &&
+      emailRegex.test(formData.email) &&
+      !errors.email
+    );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
+  const isStep2Valid = () => {
+    const phoneRegex = /^[+0-9\s-]{8,20}$/;
+    return (
+      formData.phone.trim() !== "" &&
+      phoneRegex.test(formData.phone) &&
+      !errors.phone &&
+      formData.businessName.trim() !== "" &&
+      !errors.businessName
+    );
+  };
 
+  const isStep3Valid = () => {
+    return formData.businessType !== "" && !errors.businessType;
+  };
+
+  const isStep4Valid = () => {
+    return formData.businessDescription.trim() !== "" && !errors.businessDescription;
+  };
+
+  const isCurrentStepValid = () => {
+    if (currentStepIndex === 1) return isStep1Valid();
+    if (currentStepIndex === 2) return isStep2Valid();
+    if (currentStepIndex === 3) return isStep3Valid();
+    if (currentStepIndex === 4) return isStep4Valid();
+    return true;
+  };
+
+  const handleFinalStepCompleted = async () => {
     setIsSubmitting(true);
     setApiError(null);
 
@@ -286,171 +331,204 @@ export function AssessmentModal({ isOpen, onClose, source, onSubmitSuccess }: As
                 </ClickSpark>
               </div>
             </div>
+          ) : isSubmitting ? (
+            <div className="flex flex-col items-center justify-center py-20 space-y-6 animate-in fade-in-0 duration-200 text-center">
+              <span className="w-10 h-10 border-4 border-zinc-200 border-t-primary rounded-full animate-spin" />
+              <div className="space-y-1">
+                <h3 className="font-sans text-base font-extrabold text-[#1c1d1a] uppercase tracking-wider">
+                  Compiling Diagnostic Audit
+                </h3>
+                <p className="text-zinc-500 font-sans text-xs max-w-xs leading-relaxed">
+                  Mapping corporate profile against 130+ active central & state policies...
+                </p>
+              </div>
+            </div>
           ) : !isSuccess ? (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <p className="text-zinc-500 font-sans text-xs leading-relaxed">
-                Provide your corporate parameters below to compile the eligibility schema required for state and central institutional funding channels.
-              </p>
+            <Stepper
+              initialStep={1}
+              onStepChange={(step) => setCurrentStepIndex(step)}
+              onFinalStepCompleted={handleFinalStepCompleted}
+              disableStepIndicators={false}
+              backButtonText="Back"
+              nextButtonText="Continue"
+              nextButtonProps={{
+                disabled: !isCurrentStepValid(),
+                style: { opacity: isCurrentStepValid() ? 1 : 0.6 }
+              }}
+            >
+              <Step>
+                <div className="space-y-4 text-left">
+                  <h3 className="font-sans text-sm font-extrabold text-black uppercase tracking-wider mb-2">
+                    Representative Identity
+                  </h3>
+                  <p className="text-zinc-500 font-sans text-xs leading-relaxed mb-4">
+                    Provide the name and corporate email of the primary representative driving the audit.
+                  </p>
+                  
+                  <div className="space-y-1.5">
+                    <Label htmlFor="name" className="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
+                      Full Name
+                    </Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      placeholder="e.g. Vikram Sharma"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className={`rounded-lg border-zinc-200 focus-visible:ring-black/20 ${
+                        errors.name ? "border-red-500 focus-visible:ring-red-100" : ""
+                      }`}
+                    />
+                    {errors.name && <span className="text-[10px] font-semibold text-red-500">{errors.name}</span>}
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Name */}
-                <div className="space-y-1.5 text-left">
-                  <Label htmlFor="name" className="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
-                    Full Name
-                  </Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    placeholder="e.g. Vikram Sharma"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className={`rounded-lg border-zinc-200 focus-visible:ring-black/20 ${
-                      errors.name ? "border-red-500 focus-visible:ring-red-100" : ""
-                    }`}
-                  />
-                  {errors.name && <span className="text-[10px] font-semibold text-red-500">{errors.name}</span>}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="email" className="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
+                      Corporate Email
+                    </Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="e.g. v.sharma@company.in"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className={`rounded-lg border-zinc-200 focus-visible:ring-black/20 ${
+                        errors.email ? "border-red-500 focus-visible:ring-red-100" : ""
+                      }`}
+                    />
+                    {errors.email && <span className="text-[10px] font-semibold text-red-500">{errors.email}</span>}
+                  </div>
                 </div>
+              </Step>
 
-                {/* Email */}
-                <div className="space-y-1.5 text-left">
-                  <Label htmlFor="email" className="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
-                    Corporate Email
-                  </Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="e.g. v.sharma@company.in"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className={`rounded-lg border-zinc-200 focus-visible:ring-black/20 ${
-                      errors.email ? "border-red-500 focus-visible:ring-red-100" : ""
-                    }`}
-                  />
-                  {errors.email && <span className="text-[10px] font-semibold text-red-500">{errors.email}</span>}
+              <Step>
+                <div className="space-y-4 text-left">
+                  <h3 className="font-sans text-sm font-extrabold text-black uppercase tracking-wider mb-2">
+                    Corporate Profile
+                  </h3>
+                  <p className="text-zinc-500 font-sans text-xs leading-relaxed mb-4">
+                    Provide the registered business name and a direct phone number for compliance inquiries.
+                  </p>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="phone" className="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
+                      Phone Number
+                    </Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      placeholder="e.g. +91 98765 43210"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className={`rounded-lg border-zinc-200 focus-visible:ring-black/20 ${
+                        errors.phone ? "border-red-500 focus-visible:ring-red-100" : ""
+                      }`}
+                    />
+                    {errors.phone && <span className="text-[10px] font-semibold text-red-500">{errors.phone}</span>}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="businessName" className="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
+                      Business Name
+                    </Label>
+                    <Input
+                      id="businessName"
+                      name="businessName"
+                      placeholder="e.g. Infotech Systems Ltd"
+                      value={formData.businessName}
+                      onChange={handleInputChange}
+                      className={`rounded-lg border-zinc-200 focus-visible:ring-black/20 ${
+                        errors.businessName ? "border-red-500 focus-visible:ring-red-100" : ""
+                      }`}
+                    />
+                    {errors.businessName && (
+                      <span className="text-[10px] font-semibold text-red-500">{errors.businessName}</span>
+                    )}
+                  </div>
                 </div>
-              </div>
+              </Step>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Phone */}
-                <div className="space-y-1.5 text-left">
-                  <Label htmlFor="phone" className="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
-                    Phone Number
-                  </Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    placeholder="e.g. +91 98765 43210"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className={`rounded-lg border-zinc-200 focus-visible:ring-black/20 ${
-                      errors.phone ? "border-red-500 focus-visible:ring-red-100" : ""
-                    }`}
-                  />
-                  {errors.phone && <span className="text-[10px] font-semibold text-red-500">{errors.phone}</span>}
+              <Step>
+                <div className="space-y-4 text-left">
+                  <h3 className="font-sans text-sm font-extrabold text-black uppercase tracking-wider mb-2">
+                    Industry Alignment
+                  </h3>
+                  <p className="text-zinc-500 font-sans text-xs leading-relaxed mb-4">
+                    Select the business vertical that primary represents your company's core operational activities.
+                  </p>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="businessType" className="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
+                      Business Vertical
+                    </Label>
+                    <Select
+                      value={formData.businessType}
+                      onValueChange={(val) => {
+                        setFormData((prev) => ({ ...prev, businessType: val }));
+                        setErrors((prev) => {
+                          const next = { ...prev };
+                          delete next.businessType;
+                          return next;
+                        });
+                      }}
+                    >
+                      <SelectTrigger
+                        id="businessType"
+                        className={`w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-sm text-black shadow-xs outline-none focus:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-50 h-10 cursor-pointer ${
+                          errors.businessType ? "border-red-500" : ""
+                        }`}
+                      >
+                        <SelectValue placeholder="Select business sector" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border border-zinc-250 text-black">
+                        <SelectItem value="Technology">Technology & SaaS</SelectItem>
+                        <SelectItem value="Manufacturing">Heavy Manufacturing & PLI</SelectItem>
+                        <SelectItem value="Renewable Energy">Renewable Energy & Infrastructure</SelectItem>
+                        <SelectItem value="Healthcare">Healthcare & Biotech</SelectItem>
+                        <SelectItem value="Agriculture">Agri-tech & Rural Development</SelectItem>
+                        <SelectItem value="Services">Professional Services & Consulting</SelectItem>
+                        <SelectItem value="Other">Other Enterprise Sector</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.businessType && (
+                      <span className="text-[10px] font-semibold text-red-500 block">{errors.businessType}</span>
+                    )}
+                  </div>
                 </div>
+              </Step>
 
-                {/* Business Name */}
-                <div className="space-y-1.5 text-left">
-                  <Label htmlFor="businessName" className="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
-                    Business Name
-                  </Label>
-                  <Input
-                    id="businessName"
-                    name="businessName"
-                    placeholder="e.g. Infotech Systems Ltd"
-                    value={formData.businessName}
-                    onChange={handleInputChange}
-                    className={`rounded-lg border-zinc-200 focus-visible:ring-black/20 ${
-                      errors.businessName ? "border-red-500 focus-visible:ring-red-100" : ""
-                    }`}
-                  />
-                  {errors.businessName && (
-                    <span className="text-[10px] font-semibold text-red-500">{errors.businessName}</span>
-                  )}
+              <Step>
+                <div className="space-y-4 text-left">
+                  <h3 className="font-sans text-sm font-extrabold text-black uppercase tracking-wider mb-2">
+                    Operations & Subsidies
+                  </h3>
+                  <p className="text-zinc-500 font-sans text-xs leading-relaxed mb-4">
+                    Describe your primary operations, expansion roadmap, and targeted government schemes or grants.
+                  </p>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="businessDescription" className="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
+                      Business & Funding Goals Description
+                    </Label>
+                    <Textarea
+                      id="businessDescription"
+                      name="businessDescription"
+                      rows={4}
+                      placeholder="Outline your primary operations, expansion roadmap, and what funding schemes you seek (e.g. central capital subsidy, technology development grants)."
+                      value={formData.businessDescription}
+                      onChange={handleInputChange}
+                      className={`rounded-lg border-zinc-200 focus-visible:ring-black/20 text-sm min-h-[110px] resize-none ${
+                        errors.businessDescription ? "border-red-500 focus-visible:ring-red-100" : ""
+                      }`}
+                    />
+                    {errors.businessDescription && (
+                      <span className="text-[10px] font-semibold text-red-500">{errors.businessDescription}</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-
-              {/* Business Type Selector */}
-              <div className="space-y-1.5 text-left">
-                <Label htmlFor="businessType" className="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
-                  Business Vertical
-                </Label>
-                <Select
-                  value={formData.businessType}
-                  onValueChange={(val) => {
-                    setFormData((prev) => ({ ...prev, businessType: val }));
-                    if (errors.businessType) {
-                      setErrors((prev) => {
-                        const next = { ...prev };
-                        delete next.businessType;
-                        return next;
-                      });
-                    }
-                  }}
-                >
-                  <SelectTrigger
-                    id="businessType"
-                    className={`w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-sm text-black shadow-xs outline-none focus:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-50 h-10 cursor-pointer ${
-                      errors.businessType ? "border-red-500" : ""
-                    }`}
-                  >
-                    <SelectValue placeholder="Select business sector" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white border border-zinc-250 text-black">
-                    <SelectItem value="Technology">Technology & SaaS</SelectItem>
-                    <SelectItem value="Manufacturing">Heavy Manufacturing & PLI</SelectItem>
-                    <SelectItem value="Renewable Energy">Renewable Energy & Infrastructure</SelectItem>
-                    <SelectItem value="Healthcare">Healthcare & Biotech</SelectItem>
-                    <SelectItem value="Agriculture">Agri-tech & Rural Development</SelectItem>
-                    <SelectItem value="Services">Professional Services & Consulting</SelectItem>
-                    <SelectItem value="Other">Other Enterprise Sector</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.businessType && (
-                  <span className="text-[10px] font-semibold text-red-500 block">{errors.businessType}</span>
-                )}
-              </div>
-
-              {/* Business Description */}
-              <div className="space-y-1.5 text-left">
-                <Label htmlFor="businessDescription" className="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
-                  Business & Funding Goals Description
-                </Label>
-                <Textarea
-                  id="businessDescription"
-                  name="businessDescription"
-                  rows={3}
-                  placeholder="Outline your primary operations, expansion roadmap, and what funding schemes you seek (e.g. central capital subsidy, technology development grants)."
-                  value={formData.businessDescription}
-                  onChange={handleInputChange}
-                  className={`rounded-lg border-zinc-200 focus-visible:ring-black/20 ${
-                    errors.businessDescription ? "border-red-500 focus-visible:ring-red-100" : ""
-                  }`}
-                />
-                {errors.businessDescription && (
-                  <span className="text-[10px] font-semibold text-red-500">{errors.businessDescription}</span>
-                )}
-              </div>
-
-              {/* Submit button */}
-              <ClickSpark sparkColor="#fff" sparkRadius={20} sparkCount={8} duration={400} className="w-full" style={{ display: "block", width: "100%" }}>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-black text-white py-3.5 text-xs font-bold tracking-widest uppercase rounded-lg hover:bg-zinc-800 transition-colors active:scale-99 duration-100 cursor-pointer flex items-center justify-center gap-2 mt-4"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Compiling Diagnostic...
-                    </>
-                  ) : (
-                    "Compile Eligibility Diagnostic"
-                  )}
-                </button>
-              </ClickSpark>
-            </form>
+              </Step>
+            </Stepper>
           ) : (
             <div className="py-2 space-y-6 animate-in fade-in-0 duration-200 text-left">
               {/* Header Info */}
@@ -501,6 +579,26 @@ export function AssessmentModal({ isOpen, onClose, source, onSubmitSuccess }: As
                       <p className="font-sans text-xs text-zinc-500 leading-relaxed">
                         {rec.schemeDescription}
                       </p>
+
+                      {/* Scheme Parameters HUD */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <div className="bg-zinc-150/40 border border-zinc-200/50 rounded-lg p-2 text-left">
+                          <span className="block text-[8px] font-extrabold uppercase tracking-widest text-zinc-400 font-sans">
+                            Funding Range
+                          </span>
+                          <span className="block text-[11px] font-bold text-primary tracking-tight mt-0.5 font-sans">
+                            {rec.fundingRange || "Not specified in available evidence."}
+                          </span>
+                        </div>
+                        <div className="bg-zinc-150/40 border border-zinc-200/50 rounded-lg p-2 text-left">
+                          <span className="block text-[8px] font-extrabold uppercase tracking-widest text-zinc-400 font-sans">
+                            Expected Timeline
+                          </span>
+                          <span className="block text-[11px] font-bold text-zinc-800 tracking-tight mt-0.5 font-sans">
+                            {rec.expectedTimeline || "Not specified in available evidence."}
+                          </span>
+                        </div>
+                      </div>
 
                       {/* Matched Signals */}
                       {rec.matchedSignals && rec.matchedSignals.length > 0 && (

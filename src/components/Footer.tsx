@@ -15,6 +15,30 @@ export function Footer({ onNavigate }: FooterProps) {
     }
   };
 
+  const handleAboutClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (window.location.hash.startsWith("#/landing")) {
+      window.location.hash = "#/landing#about";
+      const element = document.getElementById("about-section");
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      if (onNavigate) {
+        onNavigate("landing");
+      } else {
+        navigateTo("landing");
+      }
+      setTimeout(() => {
+        window.location.hash = "#/landing#about";
+        const element = document.getElementById("about-section");
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 350);
+    }
+  };
+
   return (
     <footer className="bg-zinc-50/50 border-t border-zinc-200 mt-auto">
       <div className="max-w-7xl mx-auto px-6 md:px-20 py-20">
@@ -61,8 +85,8 @@ export function Footer({ onNavigate }: FooterProps) {
             <ul className="space-y-4 font-sans text-sm">
               <li>
                 <a 
-                  href="#/about" 
-                  onClick={(e) => handleLinkClick(e, "about")}
+                  href="#/landing#about" 
+                  onClick={handleAboutClick}
                   className="text-zinc-500 hover:text-black transition-colors hover:underline underline-offset-4 decoration-1"
                 >
                   Advisory Board

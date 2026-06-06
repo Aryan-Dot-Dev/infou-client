@@ -11,7 +11,7 @@ export const translations = {
     "action.submit": "Submit Request",
     "action.contact": "Initiate Inquiry",
     "action.readWhitepapers": "Read Whitepapers",
-    
+
     // Navbar
     "nav.brand": "Infou Consultancy",
     "nav.about": "About Us",
@@ -23,7 +23,7 @@ export const translations = {
     "hero.subtitle": "Sovereign Integration Desk",
     "hero.title": "Government Funding Strategy for Indian",
     "hero.desc": "Precision-engineered compliance and allocation frameworks designed to unlock institutional capital across state and central schemes.",
-    "hero.assessmentBtn": "Start Free Assessment",
+    "hero.assessmentBtn": "Start for Free",
     "hero.servicesBtn": "View Services Catalog",
 
     // Metrics Row
@@ -32,16 +32,16 @@ export const translations = {
     "metrics.capitalSecured": "Capital Secured",
     "metrics.capitalOptimized": "Capital Optimized",
     "metrics.complianceError": "Compliance Error",
-    
+
     // India Map Section
     "map.hudActive": "Active Territory",
     "map.hudOptimized": "Capital Optimized",
     "map.hudHubs": "Incubation Hubs",
     "map.hudSuccess": "Success Audit",
-    
+
     // Why Choose ICS
-    "choose.badge": "Why Choose ICS",
-    "choose.title": "Institutional Expertise. Unmatched Capital Maximization.",
+    "choose.badge": "",
+    "choose.title": "Why Choose ICS?",
     "choose.desc": "We align deep policy analytics with rigorous audit frameworks to ensure high-growth businesses secure maximum non-dilutive funding.",
     "choose.card1.title": "Diagnostic First-Pass Success",
     "choose.card1.desc": "Our proprietary pre-submission audit frameworks eliminate policy loopholes, ensuring compliance and maximizing approval probability.",

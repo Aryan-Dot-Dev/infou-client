@@ -1,5 +1,5 @@
 import React, { useState, useTransition, useEffect } from "react";
-import { Menu, X, Phone, Book, Sunset, Trees, Zap } from "lucide-react";
+import { Menu, X, Phone, Book, Sunset, Trees, Zap, Award, Landmark, TrendingUp } from "lucide-react";
 import { RoutePath, navigateTo, navigateToDelayed } from "../lib/router";
 import ClickSpark from "./ui/ClickSpark";
 import { useLanguage } from "../lib/i18n";
@@ -26,7 +26,7 @@ import {
 } from "./ui/sheet";
 
 const languages = [
-  { code: "en", name: "EN" },
+  { code: "en", name: "English" },
   { code: "hi", name: "हिन्दी" },
   { code: "bn", name: "বাংলা" },
   { code: "te", name: "తెలుగు" },
@@ -58,21 +58,61 @@ export function Navbar({ currentRoute }: NavbarProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleNavClick = (route: RoutePath) => {
+  const handleNavClick = (route: RoutePath, hash?: string) => {
     setIsSheetOpen(false);
     startTransition(() => {
-      navigateToDelayed(route, 300);
+      if (hash) {
+        if (window.location.hash.startsWith("#/landing")) {
+          window.location.hash = `#/landing${hash}`;
+          const element = document.getElementById(hash.replace("#", "") + "-section");
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth" });
+          }
+        } else {
+          navigateTo(route);
+          setTimeout(() => {
+            window.location.hash = `#/landing${hash}`;
+            const element = document.getElementById(hash.replace("#", "") + "-section");
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth" });
+            }
+          }, 350);
+        }
+      } else {
+        navigateToDelayed(route, 300);
+      }
     });
   };
 
   const menuItems = [
     {
       title: t("nav.about"),
-      route: "about" as RoutePath,
+      route: "landing" as RoutePath,
+      hash: "#about"
     },
     {
       title: t("nav.services"),
       route: "services" as RoutePath,
+      items: [
+        {
+          title: "Grants",
+          description: "Government Schemes",
+          icon: <Award className="w-5 h-5" />,
+          route: "services" as RoutePath,
+        },
+        {
+          title: "Loans",
+          description: "Bank Financing",
+          icon: <Landmark className="w-5 h-5" />,
+          route: "services" as RoutePath,
+        },
+        {
+          title: "NBFC",
+          description: "Alternative Funding",
+          icon: <TrendingUp className="w-5 h-5" />,
+          route: "services" as RoutePath,
+        },
+      ],
     },
     {
       title: t("nav.blogs"),
@@ -80,7 +120,8 @@ export function Navbar({ currentRoute }: NavbarProps) {
     },
     {
       title: t("nav.contact"),
-      route: "contact" as RoutePath,
+      route: "landing" as RoutePath,
+      hash: "#contact"
     },
   ];
 
@@ -93,21 +134,19 @@ export function Navbar({ currentRoute }: NavbarProps) {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none transition-all duration-500 ease-in-out ${
-        isScrolled ? "pt-4" : "pt-0"
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none transition-all duration-500 ease-in-out ${isScrolled ? "pt-4" : "pt-0"
+        }`}
     >
       <div
-        className={`w-full pointer-events-auto transition-all duration-500 ease-in-out ${
-          isScrolled
-            ? `w-[90%] max-w-6xl ${headerRadius} border border-primary/25 bg-secondary/90 text-zinc-900 shadow-xl shadow-zinc-950/5 py-2 md:py-3 px-6 md:px-12 backdrop-blur-md`
-            : "w-full max-w-full rounded-none border border-transparent bg-transparent py-4 md:py-5 px-6 md:px-20 text-zinc-900"
-        }`}
+        className={`w-full pointer-events-auto transition-all duration-500 ease-in-out ${isScrolled
+          ? `w-[90%] max-w-6xl ${headerRadius} border border-primary/25 bg-secondary/90 text-zinc-900 shadow-xl shadow-zinc-950/5 py-2 md:py-3 px-6 md:px-12 backdrop-blur-md`
+          : "w-full max-w-full rounded-none border border-transparent bg-transparent py-4 md:py-5 px-6 md:px-20 text-zinc-900"
+          }`}
       >
         <nav className="flex justify-between items-center w-full max-w-7xl mx-auto">
           {/* Brand Logo */}
           <ClickSpark sparkColor="#FF5A36" sparkRadius={20} sparkCount={8} duration={300}>
-            <div 
+            <div
               onClick={() => handleNavClick("landing")}
               className="font-sans text-xl md:text-2xl font-extrabold tracking-tighter cursor-pointer select-none hover:opacity-80 transition-opacity uppercase text-primary"
             >
@@ -127,21 +166,23 @@ export function Navbar({ currentRoute }: NavbarProps) {
                           {item.title}
                         </NavigationMenuTrigger>
                         <NavigationMenuContent>
-                          <ul className="w-80 p-3 flex flex-col gap-1">
+                          <ul className="w-84 p-2 flex flex-col gap-2 bg-white/95 backdrop-blur-md rounded-2xl border border-primary/5">
                             {item.items.map((subItem) => (
                               <li key={subItem.title}>
                                 <NavigationMenuLink asChild>
                                   <button
                                     onClick={() => handleNavClick(subItem.route)}
-                                    className="flex select-none gap-4 rounded-md p-3 text-left w-full leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                                    className="group flex select-none items-start gap-4 rounded-xl p-3 text-left w-full border border-transparent hover:border-primary/10 hover:bg-primary/[0.03] transition-all duration-300 cursor-pointer"
                                   >
-                                    {subItem.icon}
-                                    <div className="flex flex-col gap-1 text-left">
-                                      <div className="text-sm font-semibold leading-none">
+                                    <div className="p-2.5 bg-bronze/10 text-bronze group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 rounded-xl flex items-center justify-center shrink-0">
+                                      {subItem.icon}
+                                    </div>
+                                    <div className="flex flex-col text-left">
+                                      <div className="text-sm font-extrabold text-black group-hover:text-primary transition-colors duration-300">
                                         {subItem.title}
                                       </div>
                                       {subItem.description && (
-                                        <p className="text-xs leading-normal text-muted-foreground">
+                                        <p className="text-xs text-zinc-400 group-hover:text-zinc-500 font-medium transition-colors duration-300 mt-1">
                                           {subItem.description}
                                         </p>
                                       )}
@@ -156,17 +197,16 @@ export function Navbar({ currentRoute }: NavbarProps) {
                     );
                   }
 
-                  const isActive = currentRoute === item.route;
+                  const isActive = currentRoute === item.route && !item.hash;
                   return (
                     <NavigationMenuItem key={item.title}>
                       <NavigationMenuLink asChild>
                         <button
-                          onClick={() => handleNavClick(item.route!)}
-                          className={`group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${linkColorClass} ${
-                            isActive
-                              ? "text-primary font-semibold bg-secondary/60"
-                              : ""
-                          }`}
+                          onClick={() => handleNavClick(item.route!, item.hash)}
+                          className={`group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${linkColorClass} ${isActive
+                            ? "text-primary font-semibold bg-secondary/60"
+                            : ""
+                            }`}
                         >
                           {item.title}
                         </button>
@@ -205,19 +245,6 @@ export function Navbar({ currentRoute }: NavbarProps) {
                 <Phone size={12} />
                 +1 (800) 555-0199
               </a>
-            </ClickSpark>
-
-            <ClickSpark sparkColor="#fff" sparkRadius={20} sparkCount={8} duration={400}>
-              <button
-                onClick={() => {
-                  window.dispatchEvent(
-                    new CustomEvent("open-assessment", { detail: { source: "manual_click" } })
-                  );
-                }}
-                className="px-5 py-2 text-xs font-bold tracking-widest uppercase rounded-full transition-all active:scale-95 duration-100 cursor-pointer bg-primary text-primary-foreground hover:bg-primary/95"
-              >
-                {t("action.freeAudit")}
-              </button>
             </ClickSpark>
           </div>
 
@@ -275,7 +302,7 @@ export function Navbar({ currentRoute }: NavbarProps) {
                     </a>
                   </SheetTitle>
                 </SheetHeader>
-                
+
                 <div className="my-6 flex flex-col gap-6">
                   <Accordion
                     type="single"
@@ -289,19 +316,27 @@ export function Navbar({ currentRoute }: NavbarProps) {
                             <AccordionTrigger className="py-0 font-semibold hover:no-underline text-zinc-700 hover:text-primary">
                               {item.title}
                             </AccordionTrigger>
-                            <AccordionContent className="mt-2 flex flex-col gap-1">
+                            <AccordionContent className="mt-4 flex flex-col gap-2">
                               {item.items.map((subItem) => (
-                                <a
+                                <button
                                   key={subItem.title}
-                                  className="flex select-none gap-4 rounded-md p-3 leading-none outline-none transition-colors hover:bg-secondary/40 text-zinc-650 hover:text-primary cursor-pointer"
+                                  className="group flex select-none items-start gap-4 rounded-xl p-3 text-left w-full border border-transparent hover:border-primary/10 hover:bg-primary/[0.03] transition-all duration-300 cursor-pointer"
                                   onClick={() => handleNavClick(subItem.route)}
                                 >
-                                  {subItem.icon}
-                                  <div className="text-left">
-                                    <div className="text-sm font-semibold">{subItem.title}</div>
-                                    <p className="text-xs text-zinc-500 mt-1">{subItem.description}</p>
+                                  <div className="p-2.5 bg-bronze/10 text-bronze group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 rounded-xl flex items-center justify-center shrink-0">
+                                    {subItem.icon}
                                   </div>
-                                </a>
+                                  <div className="flex flex-col text-left">
+                                    <div className="text-sm font-extrabold text-zinc-800 group-hover:text-primary transition-colors duration-300">
+                                      {subItem.title}
+                                    </div>
+                                    {subItem.description && (
+                                      <p className="text-xs text-zinc-400 group-hover:text-zinc-500 font-medium transition-colors duration-300 mt-1">
+                                        {subItem.description}
+                                      </p>
+                                    )}
+                                  </div>
+                                </button>
                               ))}
                             </AccordionContent>
                           </AccordionItem>
@@ -310,7 +345,7 @@ export function Navbar({ currentRoute }: NavbarProps) {
                       return (
                         <a
                           key={item.title}
-                          onClick={() => handleNavClick(item.route!)}
+                          onClick={() => handleNavClick(item.route!, item.hash)}
                           className="font-semibold text-zinc-700 hover:text-primary cursor-pointer"
                         >
                           {item.title}
@@ -328,20 +363,6 @@ export function Navbar({ currentRoute }: NavbarProps) {
                         <Phone size={12} />
                         +1 (800) 555-0199
                       </a>
-                    </ClickSpark>
-                    
-                    <ClickSpark sparkColor="#fff" sparkRadius={20} sparkCount={8} duration={400} className="w-full">
-                      <button
-                        onClick={() => {
-                          setIsSheetOpen(false);
-                          window.dispatchEvent(
-                            new CustomEvent("open-assessment", { detail: { source: "manual_click" } })
-                          );
-                        }}
-                        className="bg-primary text-primary-foreground text-center py-3.5 text-xs font-bold tracking-widest uppercase rounded-full hover:bg-primary/95 transition-all active:scale-95 duration-100 flex items-center justify-center gap-2 cursor-pointer w-full"
-                      >
-                        {t("action.freeAudit")}
-                      </button>
                     </ClickSpark>
                   </div>
                 </div>

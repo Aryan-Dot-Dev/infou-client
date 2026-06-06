@@ -4,9 +4,7 @@ import { Footer } from "./components/Footer";
 import { LanguageProvider } from "./lib/i18n";
 import { LandingPage } from "./components/LandingPage";
 import { ServicesPage } from "./components/ServicesPage";
-import { AboutPage } from "./components/AboutPage";
 import { BlogPage } from "./components/BlogPage";
-import { ContactPage } from "./components/ContactPage";
 import { AssessmentModal } from "./components/AssessmentModal";
 import { ChatbotWidget } from "./components/ChatbotWidget";
 import { useHashLocation, navigateTo } from "./lib/router";
@@ -26,13 +24,8 @@ export function App() {
         const handleOpenModal = (e: Event) => {
             const customEvent = e as CustomEvent;
             const source = customEvent.detail?.source || "manual_click";
-            if (source === "manual_click") {
-                setIsAssessmentOpen(false);
-                navigateTo("assessment");
-            } else {
-                setAssessmentSource(source);
-                setIsAssessmentOpen(true);
-            }
+            setAssessmentSource(source);
+            setIsAssessmentOpen(true);
         };
 
         window.addEventListener("open-assessment", handleOpenModal);
@@ -69,12 +62,8 @@ export function App() {
         switch (route) {
             case "services":
                 return <ServicesPage />;
-            case "about":
-                return <AboutPage />;
             case "blog":
                 return <BlogPage />;
-            case "contact":
-                return <ContactPage />;
             case "assessment":
                 return <AssessmentPage />;
             case "landing":

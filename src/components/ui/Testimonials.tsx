@@ -74,11 +74,6 @@ export function Testimonials() {
           viewport={{ once: true }}
           className="flex flex-col items-center justify-center max-w-[600px] mx-auto text-center"
         >
-          <div className="flex justify-center mb-6">
-            <span className="font-sans text-[10px] tracking-widest text-zinc-400 font-bold uppercase border border-zinc-200 px-4 py-1.5 rounded-lg bg-white select-none shadow-xs">
-              Testimonials
-            </span>
-          </div>
 
           <h2 className="font-sans text-3xl md:text-4xl lg:text-5xl font-extrabold text-black tracking-tight mb-6">
             What our partners say
