@@ -18,7 +18,7 @@ const result = await Bun.build({
   format: "esm",
   define: {
     "process.env.NODE_ENV": JSON.stringify("production"),
-    "import.meta.env.VITE_BACKEND_URL": JSON.stringify(import.meta.env.VITE_BACKEND_URL),
+    "import.meta.env.VITE_BACKEND_URL": JSON.stringify(process.env.VITE_BACKEND_URL || import.meta.env?.VITE_BACKEND_URL || ""),
   },
 });
 
