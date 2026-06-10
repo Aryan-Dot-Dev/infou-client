@@ -7,7 +7,6 @@ import ClickSpark from "./ui/ClickSpark";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { gsap } from "gsap";
 import { apiUrl } from "../lib/api";
-import { BACKEND_URL } from "../config.ts";
 
 
 const Grainient = React.lazy(() => import("./ui/Grainient"));

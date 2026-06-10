@@ -21,7 +21,6 @@ import avatarIndian4 from "../avatar_indian_4.png";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
-import { BACKEND_URL } from "../config";
 import { apiUrl } from "@/lib/api";
 
 const Testimonials = React.lazy(() => import("./ui/Testimonials"));

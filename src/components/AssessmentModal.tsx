@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { navigateTo } from "../lib/router";
 import Stepper, { Step } from "./ui/Stepper";
 import { apiUrl } from "../lib/api";
-import { BACKEND_URL } from "../config";
 
 interface AssessmentModalProps {
   isOpen: boolean;

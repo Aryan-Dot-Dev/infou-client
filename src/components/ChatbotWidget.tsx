@@ -4,7 +4,6 @@ import { Input } from "./ui/input";
 import ClickSpark from "./ui/ClickSpark";
 import { navigateToDelayed } from "../lib/router";
 import { apiUrl } from "../lib/api";
-import { BACKEND_URL } from "../config";
 
 
 interface Message {
