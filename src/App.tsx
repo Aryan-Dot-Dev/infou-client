@@ -39,10 +39,10 @@ function LandingPageFallback() {
                 Introducing
               </span>
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-zinc-900 leading-[1.1] text-center">
-                AI Search Engine for <span className="text-primary">Businesses</span>
+                AI Funding Search Engine for <span className="text-primary">Businesses</span>
               </h1>
               <p className="mt-6 text-lg text-zinc-505 leading-relaxed text-center max-w-xl mx-auto">
-                Precision-engineered compliance and allocation frameworks designed to unlock institutional capital across state and central schemes in India.
+                1200+ funding opportunities exist across India. Our AI tool finds your best matches in 30 seconds and our experts handle everything after.
               </p>
 
               <div className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 select-none opacity-50">
@@ -98,8 +98,9 @@ export function App() {
     return typeof window !== "undefined" && sessionStorage.getItem("infou_assessment_submitted") === "true";
   });
 
-  // console.log(import.meta);
-  // console.log(globalThis)
+  const [popupCount, setPopupCount] = useState(() => {
+    return typeof window !== "undefined" ? parseInt(sessionStorage.getItem("infou_popup_count") || "0", 10) : 0;
+  });
 
   // Custom Event Listener to open assessment modal
   useEffect(() => {
@@ -116,23 +117,26 @@ export function App() {
 
   // Random Auto-Popup Scheduler Engine
   useEffect(() => {
-    // If the user has completed the assessment form, if the modal is currently visible, or if on the assessment page, do not schedule
-    if (hasSubmitted || isAssessmentOpen || route === "assessment") return;
+    // If the user has completed the assessment form, if the modal is currently visible, on the assessment page, or if popped up 2 times, do not schedule
+    if (hasSubmitted || isAssessmentOpen || route === "assessment" || popupCount >= 2) return;
 
-    // Define random delay between 20 and 40 seconds
-    const minMs = 20000;
-    const maxMs = 40000;
+    // Define random delay between 50 and 80 seconds
+    const minMs = 50000;
+    const maxMs = 80000;
     const randomDelay = Math.floor(Math.random() * (maxMs - minMs) + minMs);
 
-    console.log(`[INFOU POLICY ENGINE] Next diagnostic audit check scheduled in ${(randomDelay / 1000).toFixed(1)} seconds.`);
+    console.log(`[INFOU POLICY ENGINE] Next diagnostic audit check scheduled in ${(randomDelay / 1000).toFixed(1)} seconds. (Popup count: ${popupCount})`);
 
     const timer = setTimeout(() => {
+      const nextCount = popupCount + 1;
+      setPopupCount(nextCount);
+      sessionStorage.setItem("infou_popup_count", String(nextCount));
       setAssessmentSource("random_popup");
       setIsAssessmentOpen(true);
     }, randomDelay);
 
     return () => clearTimeout(timer);
-  }, [hasSubmitted, isAssessmentOpen, route]);
+  }, [hasSubmitted, isAssessmentOpen, route, popupCount]);
 
   // Redirect from hidden blog page to landing page
   useEffect(() => {

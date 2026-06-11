@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { X, CheckCircle, Copy, Check, Phone } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { X, CheckCircle, Copy, Check, Phone, ChevronDown, Search } from "lucide-react";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
@@ -8,6 +8,60 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { navigateTo } from "../lib/router";
 import Stepper, { Step } from "./ui/Stepper";
 import { apiUrl } from "../lib/api";
+
+const SECTORS = [
+  "Technology / SaaS",
+  "Artificial Intelligence / ML",
+  "Fintech / Payments",
+  "Edtech",
+  "Healthtech / Medtech",
+  "Agritech",
+  "Cleantech / Green Energy",
+  "E-commerce / D2C",
+  "Logistics & Supply Chain",
+  "Manufacturing",
+  "Food Processing",
+  "Textile & Apparel",
+  "Pharmaceuticals & Chemicals",
+  "Auto & EV Components",
+  "Agriculture & Farming",
+  "Dairy & Animal Husbandry",
+  "Fisheries",
+  "Food & Beverage",
+  "Healthcare & Wellness",
+  "Hospital & Clinic",
+  "Pharmacy & Medical Devices",
+  "Retail & Consumer",
+  "Fashion & Lifestyle",
+  "Beauty & Personal Care",
+  "Services & Consulting",
+  "Legal Services",
+  "Accounting & Finance",
+  "Marketing & Advertising",
+  "Training & Skill Development",
+  "Media & Entertainment",
+  "Film & Content Creation",
+  "Animation & VFX",
+  "Education",
+  "School / College",
+  "Coaching & Tutoring",
+  "Vocational Training",
+  "Tourism & Hospitality",
+  "Hotel & Restaurant",
+  "Travel & Tour Operations",
+  "Energy & Environment",
+  "Solar / Wind Energy",
+  "Waste Management",
+  "Electric Vehicles",
+  "Infrastructure & Real Estate",
+  "Construction",
+  "Interior Design",
+  "Social Enterprise / NGO",
+  "Financial Services",
+  "Insurance & NBFC",
+  "Defence & Aerospace",
+  "Other — Please Specify"
+];
 
 interface AssessmentModalProps {
   isOpen: boolean;
@@ -31,6 +85,7 @@ export function AssessmentModal({ isOpen, onClose, source, onSubmitSuccess }: As
   const [isSuccess, setIsSuccess] = useState(false);
   const [generatedPayload, setGeneratedPayload] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+  const [submitProgress, setSubmitProgress] = useState(0);
 
   // Stepper state tracking
   const [currentStepIndex, setCurrentStepIndex] = useState(1);
@@ -40,6 +95,22 @@ export function AssessmentModal({ isOpen, onClose, source, onSubmitSuccess }: As
   const [apiError, setApiError] = useState<string | null>(null);
   const [showPayload, setShowPayload] = useState(false);
   const [requestPayload, setRequestPayload] = useState<string | null>(null);
+
+  // Searchable dropdown states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Reset form when modal opens/closes
   useEffect(() => {
@@ -61,6 +132,8 @@ export function AssessmentModal({ isOpen, onClose, source, onSubmitSuccess }: As
       setShowPayload(false);
       setRequestPayload(null);
       setCurrentStepIndex(1);
+      setSearchQuery("");
+      setIsDropdownOpen(false);
     }
   }, [isOpen]);
 
@@ -75,6 +148,29 @@ export function AssessmentModal({ isOpen, onClose, source, onSubmitSuccess }: As
       document.body.style.overflow = "";
     };
   }, [isOpen]);
+
+  // Simulated progress logic for premium loading feel
+  useEffect(() => {
+    let interval: any;
+    if (isSubmitting) {
+      setSubmitProgress(0);
+      interval = setInterval(() => {
+        setSubmitProgress((prev) => {
+          if (prev >= 95) {
+            clearInterval(interval);
+            return 95;
+          }
+          const increment = prev < 30 ? 3 : prev < 70 ? 2 : prev < 90 ? 1 : 0.5;
+          return Math.min(prev + increment, 95);
+        });
+      }, 50);
+    } else {
+      setSubmitProgress(0);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isSubmitting]);
 
   if (!isOpen) return null;
 
@@ -176,6 +272,36 @@ export function AssessmentModal({ isOpen, onClose, source, onSubmitSuccess }: As
     console.log("[INFOU API RECOMMEND INITIATED]", payload);
 
     try {
+      // Securely save the lead to Neon DB and wait for it
+      const dbResponse = await fetch("https://rw4taxkwgg.execute-api.ap-south-1.amazonaws.com/dev/api/save-assessment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          businessName: formData.businessName.trim(),
+          businessType: formData.businessType,
+          businessDescription: formData.businessDescription.trim()
+        })
+      });
+
+      if (!dbResponse.ok) {
+        let dbErrorMsg = `Database Error: HTTP ${dbResponse.status}`;
+        try {
+          const errData = await dbResponse.json();
+          dbErrorMsg = typeof errData === "object" ? JSON.stringify(errData, null, 2) : errData;
+        } catch (_) {
+          try {
+            const txt = await dbResponse.text();
+            if (txt) dbErrorMsg = txt;
+          } catch (__) { }
+        }
+        throw new Error(dbErrorMsg);
+      }
+
       const response = await fetch(apiUrl(`/api/recommend-schemes`), {
         method: "POST",
         headers: {
@@ -196,6 +322,11 @@ export function AssessmentModal({ isOpen, onClose, source, onSubmitSuccess }: As
       }
 
       const resData = await response.json();
+
+      // Animate progress to 100
+      setSubmitProgress(100);
+      await new Promise((resolve) => setTimeout(resolve, 350));
+
       const sessionPayload = {
         recommendations: resData.recommendations || [],
         originalFormData: {
@@ -246,95 +377,115 @@ export function AssessmentModal({ isOpen, onClose, source, onSubmitSuccess }: As
         </button>
 
         {apiError ? (
-          <div className="step-circle-container p-6 md:p-8 pt-16 bg-white border border-zinc-200 rounded-2xl shadow-xl overflow-y-auto max-h-[90vh] text-left">
-            <div className="py-4 space-y-6 animate-in fade-in-0 duration-200 text-left">
-              {/* Error Header */}
-              <div className="flex flex-col items-center justify-center text-center">
-                <div className="w-10 h-10 bg-red-50 text-red-600 border border-red-100 flex items-center justify-center rounded-full mb-3 shadow-xs">
-                  <X size={20} strokeWidth={2} />
-                </div>
-                <h3 className="font-sans text-base font-bold text-black uppercase tracking-wider">
-                  Advisory Database Offline
-                </h3>
-                <p className="text-zinc-500 font-sans text-xs max-w-sm mt-1 leading-relaxed">
-                  The local recommendations service returned the following diagnostic warning:
-                </p>
-                <div className="bg-red-50/50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-xs leading-relaxed max-w-md mt-3 font-sans w-full">
-                  {apiError}
-                </div>
+          <div className="step-circle-container p-6 md:p-8 pt-10 pb-8 bg-white border border-zinc-200 rounded-2xl shadow-xl text-center space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex flex-col items-center justify-center">
+              <div className="w-12 h-12 bg-red-50 text-red-500 border border-red-100 flex items-center justify-center rounded-full mb-3 shadow-xs">
+                <X size={24} strokeWidth={2.5} />
               </div>
+              <h3 className="font-sans text-lg font-extrabold text-black uppercase tracking-wider">
+                Submission Error
+              </h3>
+              <p className="text-zinc-500 font-sans text-xs max-w-sm mt-2 leading-relaxed">
+                We encountered an issue while processing your assessment request:
+              </p>
+              <pre className="mt-3 w-full text-left font-mono text-[10px] text-red-600 bg-red-50/50 border border-red-100 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-40 overflow-y-auto">
+                {apiError}
+              </pre>
+            </div>
 
-              {/* Show structured request data so developer can review */}
-              <div className="space-y-3">
-                <p className="text-[10px] font-extrabold tracking-widest text-zinc-400 uppercase text-center">
-                  Packaged Request Schema (Ready to wire)
-                </p>
+            {/* Direct Call Button (User CTA) */}
+            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 max-w-sm mx-auto flex flex-col items-center justify-center space-y-2">
+              <span className="text-[9px] font-mono tracking-widest text-zinc-400 uppercase select-none">
+                Direct Eligibility Hotline
+              </span>
+              <ClickSpark sparkColor="#ea580c" sparkRadius={20} sparkCount={8} duration={350} className="w-full">
+                <a
+                  href="tel:+91 8447198483"
+                  className="bg-white border border-zinc-200 text-zinc-900 px-5 py-3 text-xs font-bold tracking-widest uppercase rounded-full hover:bg-zinc-50 transition-all flex items-center justify-center gap-2 cursor-pointer w-full shadow-xs active:scale-95"
+                >
+                  <Phone size={13} className="text-primary" />
+                  +91 8447198483
+                </a>
+              </ClickSpark>
+            </div>
 
-                {requestPayload && (
-                  <div className="relative group text-left max-w-lg mx-auto">
-                    <div className="absolute right-3 top-3 z-25">
-                      <button
-                        onClick={() => copyToClipboard(requestPayload)}
-                        className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all flex items-center gap-1 text-[10px] font-mono cursor-pointer"
-                      >
-                        {isCopied ? (
-                          <>
-                            <Check size={12} className="text-emerald-400" />
-                            <span className="text-emerald-400">COPIED</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy size={12} />
-                            <span>COPY REQUEST JSON</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
+            <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center items-center">
+              <ClickSpark sparkColor="#000" sparkRadius={18} sparkCount={6} duration={300}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setApiError(null);
+                    setIsSuccess(false);
+                  }}
+                  className="border border-zinc-200 text-black px-8 py-3 text-xs font-bold tracking-widest uppercase rounded-lg hover:bg-zinc-50 transition-colors active:scale-95 duration-100 cursor-pointer w-full sm:w-auto"
+                >
+                  Back to Form
+                </button>
+              </ClickSpark>
 
-                    <div className="w-full text-[10px] font-mono tracking-widest text-zinc-600 bg-zinc-950 px-4 py-2 border-t border-x border-zinc-850 rounded-t-xl select-none">
-                      API REQUEST SCHEME SPEC v1.0
-                    </div>
-                    <pre className="bg-zinc-950 text-zinc-300 p-4 rounded-b-xl text-[10px] overflow-x-auto font-mono border border-zinc-850 max-h-40 overflow-y-auto w-full">
-                      <code>{requestPayload}</code>
-                    </pre>
-                  </div>
-                )}
-              </div>
-
-              <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center items-center">
-                <ClickSpark sparkColor="#000" sparkRadius={20} sparkCount={6} duration={350}>
-                  <button
-                    onClick={() => {
-                      setApiError(null);
-                      setIsSuccess(false);
-                    }}
-                    className="border border-zinc-200 text-black px-8 py-3.5 text-xs font-bold tracking-widest uppercase rounded-lg hover:bg-zinc-50 transition-colors active:scale-95 duration-100 cursor-pointer w-full sm:w-auto"
-                  >
-                    Back to Form
-                  </button>
-                </ClickSpark>
-
-                <ClickSpark sparkColor="#fff" sparkRadius={20} sparkCount={8} duration={400}>
-                  <button
-                    onClick={onClose}
-                    className="bg-primary text-white px-8 py-3.5 text-xs font-bold tracking-widest uppercase rounded-lg hover:bg-primary/90 transition-colors active:scale-95 duration-100 cursor-pointer w-full sm:w-auto text-center"
-                  >
-                    Dismiss Warning
-                  </button>
-                </ClickSpark>
-              </div>
+              <ClickSpark sparkColor="#fff" sparkRadius={20} sparkCount={8} duration={350}>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="bg-primary text-white px-8 py-3 text-xs font-bold tracking-widest uppercase rounded-lg hover:bg-primary/90 transition-colors active:scale-95 duration-100 cursor-pointer w-full sm:w-auto text-center"
+                >
+                  Close
+                </button>
+              </ClickSpark>
             </div>
           </div>
         ) : isSubmitting ? (
-          <div className="step-circle-container p-6 md:p-8 pt-16 pb-16 flex flex-col items-center justify-center min-h-[350px] bg-white border border-zinc-200 rounded-2xl shadow-xl text-center">
-            <span className="w-10 h-10 border-4 border-zinc-200 border-t-primary rounded-full animate-spin" />
-            <div className="space-y-1">
+          <div className="step-circle-container p-6 md:p-8 pt-16 pb-16 flex flex-col items-center justify-center min-h-[350px] bg-white border border-zinc-200 rounded-2xl shadow-xl text-center space-y-6">
+            <div className="relative flex items-center justify-center">
+              <svg className="w-20 h-20 transform -rotate-90">
+                <circle
+                  cx="40"
+                  cy="40"
+                  r="34"
+                  stroke="#f4f4f5"
+                  strokeWidth="6"
+                  fill="transparent"
+                />
+                <circle
+                  cx="40"
+                  cy="40"
+                  r="34"
+                  stroke="#ea580c"
+                  strokeWidth="6"
+                  fill="transparent"
+                  strokeDasharray={2 * Math.PI * 34}
+                  strokeDashoffset={2 * Math.PI * 34 * (1 - Math.round(submitProgress) / 100)}
+                  strokeLinecap="round"
+                  className="transition-all duration-75 ease-out"
+                />
+              </svg>
+              <span className="absolute text-base font-extrabold text-black tracking-tighter">
+                {Math.round(submitProgress)}%
+              </span>
+            </div>
+
+            <div className="space-y-2 max-w-xs">
               <h3 className="font-sans text-base font-extrabold text-[#1c1d1a] uppercase tracking-wider">
-                Compiling Diagnostic Audit
+                {submitProgress < 30 ? "Initializing Profile Analysis" :
+                  submitProgress < 60 ? "Scanning Ministry Databases" :
+                    submitProgress < 85 ? "Checking Policy Criteria" :
+                      submitProgress < 100 ? "Compiling Match Report" :
+                        "Matched Successfully!"}
               </h3>
-              <p className="text-zinc-500 font-sans text-xs max-w-xs leading-relaxed">
-                Mapping corporate profile against 130+ active central & state policies...
+              <p className="text-zinc-500 font-sans text-xs leading-relaxed">
+                {submitProgress < 30 ? "Setting up diagnostics environment..." :
+                  submitProgress < 60 ? "Evaluating profile against 130+ central & state policies..." :
+                    submitProgress < 85 ? "Validating operational rules and corporate compliance..." :
+                      submitProgress < 100 ? "Filtering recommendations for the best enterprise fits..." :
+                        "Preparing recommendations report..."}
               </p>
+            </div>
+
+            <div className="w-full max-w-xs bg-zinc-100 h-1.5 rounded-full overflow-hidden border border-zinc-200/50">
+              <div
+                className="bg-[#ea580c] h-full rounded-full transition-all duration-75 ease-out shadow-[0_0_8px_rgba(234,88,12,0.5)]"
+                style={{ width: `${submitProgress}%` }}
+              />
             </div>
           </div>
         ) : !isSuccess ? (
@@ -353,10 +504,10 @@ export function AssessmentModal({ isOpen, onClose, source, onSubmitSuccess }: As
             <Step>
               <div className="space-y-4 text-left">
                 <h3 className="font-sans text-sm font-extrabold text-black uppercase tracking-wider mb-2">
-                  Corporate & Representative Profile
+                  Profile
                 </h3>
                 <p className="text-zinc-500 font-sans text-xs leading-relaxed mb-4">
-                  Provide your representative details and registered business profile for scheme evaluation.
+                  Provide your details and registered business profile for scheme evaluation.
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -378,7 +529,7 @@ export function AssessmentModal({ isOpen, onClose, source, onSubmitSuccess }: As
 
                   <div className="space-y-1.5">
                     <Label htmlFor="email" className="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
-                      Corporate Email
+                      Email
                     </Label>
                     <Input
                       id="email"
@@ -435,7 +586,7 @@ export function AssessmentModal({ isOpen, onClose, source, onSubmitSuccess }: As
             <Step>
               <div className="space-y-4 text-left">
                 <h3 className="font-sans text-sm font-extrabold text-black uppercase tracking-wider mb-2">
-                  Industry Alignment
+                  Industry Sector
                 </h3>
                 <p className="text-zinc-500 font-sans text-xs leading-relaxed mb-4">
                   Select the business vertical that primary represents your company's core operational activities.
@@ -445,34 +596,89 @@ export function AssessmentModal({ isOpen, onClose, source, onSubmitSuccess }: As
                   <Label htmlFor="businessType" className="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
                     Business Vertical
                   </Label>
-                  <Select
-                    value={formData.businessType}
-                    onValueChange={(val) => {
-                      setFormData((prev) => ({ ...prev, businessType: val }));
-                      setErrors((prev) => {
-                        const next = { ...prev };
-                        delete next.businessType;
-                        return next;
-                      });
-                    }}
-                  >
-                    <SelectTrigger
+                  <div className="relative" ref={dropdownRef}>
+                    <button
                       id="businessType"
-                      className={`w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-sm text-black shadow-xs outline-none focus:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-50 h-10 cursor-pointer ${errors.businessType ? "border-red-500" : ""
+                      type="button"
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className={`w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-sm text-black shadow-xs outline-none focus:border-zinc-400 disabled:cursor-not-allowed disabled:opacity-50 h-10 cursor-pointer flex items-center justify-between ${errors.businessType ? "border-red-500" : ""
                         }`}
                     >
-                      <SelectValue placeholder="Select business sector" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border border-zinc-250 text-black">
-                      <SelectItem value="Technology">Technology & SaaS</SelectItem>
-                      <SelectItem value="Manufacturing">Heavy Manufacturing & PLI</SelectItem>
-                      <SelectItem value="Renewable Energy">Renewable Energy & Infrastructure</SelectItem>
-                      <SelectItem value="Healthcare">Healthcare & Biotech</SelectItem>
-                      <SelectItem value="Agriculture">Agri-tech & Rural Development</SelectItem>
-                      <SelectItem value="Services">Professional Services & Consulting</SelectItem>
-                      <SelectItem value="Other">Other Enterprise Sector</SelectItem>
-                    </SelectContent>
-                  </Select>
+                      <span className={formData.businessType ? "text-black" : "text-zinc-400"}>
+                        {formData.businessType || "Select business sector"}
+                      </span>
+                      <ChevronDown className={`w-4 h-4 text-zinc-500 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`} />
+                    </button>
+
+                    {isDropdownOpen && (
+                      <div className="absolute left-0 right-0 mt-1.5 bg-white border border-zinc-250 rounded-xl shadow-xl z-50 text-black overflow-hidden flex flex-col">
+                        {/* Search Bar - Fixed at the top */}
+                        <div className="flex items-center gap-2 px-3 py-2 border-b border-zinc-150 bg-zinc-50/50">
+                          <Search className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                          <input
+                            type="text"
+                            placeholder="Search business sector..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full bg-transparent text-xs text-black border-none outline-none placeholder-zinc-400 h-6"
+                            autoFocus
+                          />
+                          {searchQuery && (
+                            <button
+                              type="button"
+                              onClick={() => setSearchQuery("")}
+                              className="text-zinc-400 hover:text-zinc-600 text-[10px] font-bold cursor-pointer"
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Options List - Internally scrolls, max 5 rows window */}
+                        <div className="overflow-y-auto max-h-[180px] divide-y divide-zinc-50">
+                          {(() => {
+                            const filtered = SECTORS.filter((sector) =>
+                              sector.toLowerCase().includes(searchQuery.toLowerCase())
+                            );
+                            if (filtered.length > 0) {
+                              return filtered.map((sector) => {
+                                const isSelected = formData.businessType === sector;
+                                return (
+                                  <button
+                                    key={sector}
+                                    type="button"
+                                    onClick={() => {
+                                      setFormData((prev) => ({ ...prev, businessType: sector }));
+                                      setErrors((prev) => {
+                                        const next = { ...prev };
+                                        delete next.businessType;
+                                        return next;
+                                      });
+                                      setIsDropdownOpen(false);
+                                      setSearchQuery("");
+                                    }}
+                                    className={`w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center justify-between h-9 cursor-pointer ${isSelected
+                                        ? "bg-primary/5 text-primary font-bold"
+                                        : "hover:bg-zinc-50 text-zinc-700 hover:text-black"
+                                      }`}
+                                  >
+                                    <span>{sector}</span>
+                                    {isSelected && <Check className="w-3 h-3 text-primary shrink-0" />}
+                                  </button>
+                                );
+                              });
+                            }
+                            return (
+                              <div className="px-3 py-4 text-xs text-zinc-400 text-center select-none">
+                                No sectors found
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {isDropdownOpen && <div className="h-[230px]" />}
                   {errors.businessType && (
                     <span className="text-[10px] font-semibold text-red-500 block">{errors.businessType}</span>
                   )}
@@ -483,21 +689,21 @@ export function AssessmentModal({ isOpen, onClose, source, onSubmitSuccess }: As
             <Step>
               <div className="space-y-4 text-left">
                 <h3 className="font-sans text-sm font-extrabold text-black uppercase tracking-wider mb-2">
-                  Operations & Subsidies
+                  Detailed Description
                 </h3>
                 <p className="text-zinc-500 font-sans text-xs leading-relaxed mb-4">
-                  Describe your primary operations, expansion roadmap, and targeted government schemes or grants.
+                  Describe your primary operations and targeted government schemes or grants.
                 </p>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="businessDescription" className="text-[11px] font-bold uppercase tracking-wider text-zinc-700">
-                    Business & Funding Goals Description
+                    Business Description
                   </Label>
                   <Textarea
                     id="businessDescription"
                     name="businessDescription"
                     rows={4}
-                    placeholder="Outline your primary operations, expansion roadmap, and what funding schemes you seek (e.g. central capital subsidy, technology development grants)."
+                    placeholder="Outline your primary operations and what funding schemes you seek (e.g. central capital subsidy, technology development grants)."
                     value={formData.businessDescription}
                     onChange={handleInputChange}
                     className={`rounded-lg border-zinc-200 focus-visible:ring-black/20 text-sm min-h-[110px] resize-none ${errors.businessDescription ? "border-red-500 focus-visible:ring-red-100" : ""

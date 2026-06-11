@@ -85,13 +85,13 @@
     @apply font-sans;
     --background: oklch(0.99 0.006 38);
     --foreground: oklch(0.18 0.03 38);
-    --primary: oklch(0.56 0.18 38);
+    --primary: oklch(0.62 0.21 47);
     --primary-foreground: oklch(0.99 0.006 38);
     --secondary: oklch(0.96 0.015 38);
-    --secondary-foreground: oklch(0.56 0.18 38);
+    --secondary-foreground: oklch(0.62 0.21 47);
     --border: oklch(0.91 0.01 38);
     --input: oklch(0.91 0.01 38);
-    --ring: oklch(0.56 0.18 38);
+    --ring: oklch(0.62 0.21 47);
     --radius: 0.75rem; /* Modern, premium softer border radius */
   }
 

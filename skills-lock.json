@@ -7,6 +7,12 @@
       "skillPath": "skills/react-performance-optimization/SKILL.md",
       "computedHash": "724c150fb303279768abde163de33c4b3c9629ffaaca98b6414ae11c9e8c1ec0"
     },
+    "responsive-design": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/ui-design/skills/responsive-design/SKILL.md",
+      "computedHash": "155eff4b1bc8d867ae6bea9900c485ab1081de0b4873c1900adb66bf62466aed"
+    },
     "vercel-composition-patterns": {
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",

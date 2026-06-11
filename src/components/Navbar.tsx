@@ -1,5 +1,5 @@
 import React, { useState, useTransition, useEffect } from "react";
-import { Menu, X, Phone, Book, Sunset, Trees, Zap, Award, Landmark, TrendingUp, Sparkle } from "lucide-react";
+import { Menu, X, Phone, Book, Sunset, Trees, Zap, Award, Landmark, TrendingUp, Sparkles, Compass, Briefcase } from "lucide-react";
 import { RoutePath, navigateTo, navigateToDelayed } from "../lib/router";
 import ClickSpark from "./ui/ClickSpark";
 import { useLanguage } from "../lib/i18n";
@@ -102,33 +102,33 @@ export function Navbar({ currentRoute }: NavbarProps) {
       route: "services" as RoutePath,
       items: [
         {
-          title: "Government Grants",
-          // description: "Government Grants",
+          title: "Government Grant Advisory",
           icon: <Award className="w-4 h-4" />,
           route: "services" as RoutePath,
         },
         {
-          title: "Startup Schemes",
-          // description: "Startup Scheme",
-          icon: <Sparkle className="w-4 h-4" />,
+          title: "Startup Scheme Matching",
+          icon: <Sparkles className="w-4 h-4" />,
           route: "services" as RoutePath,
         },
         {
-          title: "Bank Financing",
-          // description: "Bank Financing",
+          title: "Bank Loan Support",
           icon: <Landmark className="w-4 h-4" />,
           route: "services" as RoutePath,
         },
         {
-          title: "Incubation Connect",
-          // description: "Incubation Connect",
+          title: "Investor Connect",
           icon: <TrendingUp className="w-4 h-4" />,
           route: "services" as RoutePath,
         },
         {
-          title: "Investor Connect",
-          // description: "Investor Connect",
-          icon: <TrendingUp className="w-4 h-4" />,
+          title: "Incubation Access",
+          icon: <Compass className="w-4 h-4" />,
+          route: "services" as RoutePath,
+        },
+        {
+          title: "Private Funding Access",
+          icon: <Briefcase className="w-4 h-4" />,
           route: "services" as RoutePath,
         }
       ],
@@ -164,7 +164,7 @@ export function Navbar({ currentRoute }: NavbarProps) {
       >
         <nav className="flex justify-between items-center w-full max-w-7xl mx-auto">
           {/* Brand Logo */}
-          <ClickSpark sparkColor="#FF5A36" sparkRadius={20} sparkCount={8} duration={300}>
+          <ClickSpark sparkColor="#ea580c" sparkRadius={20} sparkCount={8} duration={300}>
             <div
               onClick={() => handleNavClick("landing")}
               className="font-sans text-xl md:text-2xl font-extrabold tracking-tighter cursor-pointer select-none hover:opacity-80 transition-opacity uppercase text-primary"
@@ -175,7 +175,7 @@ export function Navbar({ currentRoute }: NavbarProps) {
           </ClickSpark>
 
           {/* Desktop Navigation Menu */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-2">
             <NavigationMenu>
               <NavigationMenuList>
                 {menuItems.map((item) => {
@@ -192,13 +192,13 @@ export function Navbar({ currentRoute }: NavbarProps) {
                                 <NavigationMenuLink asChild>
                                   <button
                                     onClick={() => handleNavClick(subItem.route)}
-                                    className="group flex select-none items-center gap-4 rounded-xl p-3 text-left w-full border border-transparent hover:border-primary/10 hover:bg-primary/[0.03] transition-all duration-300 cursor-pointer"
+                                    className="group flex select-none items-center gap-4 rounded-xl p-3 text-left w-full border border-transparent hover:border-[#ea580c]/10 hover:bg-[#ea580c]/[0.03] transition-all duration-300 cursor-pointer"
                                   >
-                                    <div className="p-2 bg-bronze/10 text-bronze group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 rounded-lg flex items-center justify-center shrink-0">
+                                    <div className="p-2 bg-bronze/10 text-bronze group-hover:bg-[#ea580c] group-hover:text-primary-foreground transition-all duration-300 rounded-lg flex items-center justify-center shrink-0">
                                       {subItem.icon}
                                     </div>
                                     <div className="flex flex-col text-left">
-                                      <div className="text-sm font-extrabold text-black group-hover:text-primary transition-colors duration-300">
+                                      <div className="text-sm font-extrabold text-black group-hover:text-[#ea580c] transition-colors duration-300">
                                         {subItem.title}
                                       </div>
                                     </div>
@@ -234,7 +234,7 @@ export function Navbar({ currentRoute }: NavbarProps) {
           </div>
 
           {/* Action Items */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-4">
             {/* Language Selection Dropdown */}
             <div className="relative">
               <Select value={language} onValueChange={setLanguage}>
@@ -262,7 +262,7 @@ export function Navbar({ currentRoute }: NavbarProps) {
               </Select>
             </div>
 
-            <ClickSpark sparkColor="#FF5A36" sparkRadius={18} sparkCount={6} duration={350}>
+            <ClickSpark sparkColor="#ea580c" sparkRadius={18} sparkCount={6} duration={350}>
               <a
                 href="tel:+91 8447198483"
                 className="px-5 py-2 text-xs font-bold tracking-widest uppercase rounded-full border border-zinc-200 hover:bg-zinc-50 text-zinc-900 bg-transparent flex items-center gap-2"
@@ -274,35 +274,8 @@ export function Navbar({ currentRoute }: NavbarProps) {
           </div>
 
           {/* Mobile Navigation Trigger & Drawer */}
-          <div className="md:hidden flex items-center gap-3">
-            {/* Language Selection Mobile Dropdown */}
-            <div className="relative">
-              <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger
-                  className="h-8 w-fit rounded-full border border-zinc-200 bg-transparent px-3 py-1.5 text-[9px] font-extrabold tracking-wider uppercase text-zinc-900 hover:bg-zinc-50 cursor-pointer notranslate"
-                  translate="no"
-                  aria-label="Select Language"
-                >
-                  <SelectValue placeholder="Language">
-                    {languages.find(l => l.code === language)?.name || "Language"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-zinc-200 shadow-md rounded-xl notranslate" translate="no">
-                  {languages.map((lang) => (
-                    <SelectItem
-                      key={lang.code}
-                      value={lang.code}
-                      className="text-[9px] font-extrabold tracking-wider uppercase hover:bg-zinc-100 cursor-pointer py-1.5 notranslate"
-                      translate="no"
-                    >
-                      {lang.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <ClickSpark sparkColor="#FF5A36" sparkRadius={20} sparkCount={8} duration={350}>
+          <div className="lg:hidden flex items-center gap-3">
+            <ClickSpark sparkColor="#ea580c" sparkRadius={20} sparkCount={8} duration={350}>
               <a
                 href="tel:+91 8447198483"
                 className="p-2 border border-zinc-200 hover:bg-zinc-50 text-zinc-900 rounded-full transition-colors flex items-center justify-center"
@@ -321,7 +294,7 @@ export function Navbar({ currentRoute }: NavbarProps) {
                   <Menu size={24} />
                 </button>
               </SheetTrigger>
-              <SheetContent className="overflow-y-auto bg-background border-zinc-200 text-zinc-900">
+              <SheetContent className="overflow-y-auto overflow-x-hidden bg-background border-zinc-200 text-zinc-900">
                 <SheetHeader>
                   <SheetTitle className="text-left">
                     <a
@@ -331,7 +304,7 @@ export function Navbar({ currentRoute }: NavbarProps) {
                       }}
                       className="flex items-center gap-2 cursor-pointer"
                     >
-                      <span className="text-lg font-extrabold tracking-tighter text-primary uppercase">
+                      <span className="text-lg font-extrabold tracking-tighter text-[#ea580c] uppercase">
                         {t("nav.brand")}
                       </span>
                     </a>
@@ -351,18 +324,18 @@ export function Navbar({ currentRoute }: NavbarProps) {
                             <AccordionTrigger className="py-0 font-semibold hover:no-underline text-zinc-700 hover:text-primary">
                               {item.title}
                             </AccordionTrigger>
-                            <AccordionContent className="mt-4 flex flex-col gap-2">
+                            <AccordionContent className="mt-2 pl-4 ml-1 flex flex-col gap-1 border-l border-zinc-200">
                               {item.items.map((subItem) => (
                                 <button
                                   key={subItem.title}
-                                  className="group flex select-none items-center gap-4 rounded-xl p-3 text-left w-full border border-transparent hover:border-primary/10 hover:bg-primary/[0.03] transition-all duration-300 cursor-pointer"
+                                  className="group flex select-none items-center gap-3 rounded-lg py-2 px-2.5 text-left w-full border border-transparent hover:bg-secondary/40 transition-all duration-200 cursor-pointer"
                                   onClick={() => handleNavClick(subItem.route)}
                                 >
-                                  <div className="p-2 bg-bronze/10 text-bronze group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 rounded-lg flex items-center justify-center shrink-0">
+                                  <div className="p-1.5 bg-bronze/10 text-bronze group-hover:bg-[#ea580c] group-hover:text-primary-foreground transition-all duration-200 rounded-md flex items-center justify-center shrink-0">
                                     {subItem.icon}
                                   </div>
                                   <div className="flex flex-col text-left">
-                                    <div className="text-sm font-extrabold text-zinc-800 group-hover:text-primary transition-colors duration-300">
+                                    <div className="text-sm font-medium text-zinc-600 group-hover:text-[#ea580c] transition-colors duration-200">
                                       {subItem.title}
                                     </div>
                                   </div>
@@ -384,8 +357,45 @@ export function Navbar({ currentRoute }: NavbarProps) {
                     })}
                   </Accordion>
 
-                  <div className="border-t border-zinc-200 py-4 flex flex-col gap-3">
-                    <ClickSpark sparkColor="#FF5A36" sparkRadius={20} sparkCount={8} duration={400} className="w-full">
+                  <div className="border-t border-zinc-200 py-4 flex flex-col gap-4">
+                    {/* Language Selection Mobile Dropdown */}
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-[10px] font-extrabold tracking-widest uppercase text-zinc-400 select-none">
+                        Language
+                      </span>
+                      <Select value={language} onValueChange={setLanguage}>
+                        <SelectTrigger
+                          className="h-10 w-full rounded-xl border border-zinc-200 bg-transparent px-4 py-2.5 text-xs font-bold tracking-wide uppercase text-zinc-900 hover:bg-zinc-50 cursor-pointer notranslate"
+                          translate="no"
+                          aria-label="Select Language"
+                        >
+                          <SelectValue placeholder="Language">
+                            {languages.find(l => l.code === language)?.name || "Language"}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border border-zinc-200 shadow-md rounded-xl notranslate" translate="no">
+                          {languages.map((lang) => (
+                            <SelectItem
+                              key={lang.code}
+                              value={lang.code}
+                              className="text-xs font-bold tracking-wide uppercase hover:bg-zinc-100 cursor-pointer py-2.5 notranslate"
+                              translate="no"
+                            >
+                              {lang.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <ClickSpark
+                      sparkColor="#ea580c"
+                      sparkRadius={20}
+                      sparkCount={8}
+                      duration={400}
+                      className="w-full"
+                      style={{ width: "100%", display: "block" }}
+                    >
                       <a
                         href="tel:+91 8447198483"
                         className="border border-zinc-200 text-zinc-900 text-center py-3.5 text-xs font-bold tracking-widest uppercase rounded-full hover:bg-zinc-50 transition-all active:scale-95 duration-100 flex items-center justify-center gap-2 cursor-pointer w-full"

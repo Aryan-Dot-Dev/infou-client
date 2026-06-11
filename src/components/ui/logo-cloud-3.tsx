@@ -25,14 +25,14 @@ export function LogoCloud({ className, logos, ...props }: LogoCloudProps) {
         {logos.map((logo) => (
           <div
             key={`logo-${logo.alt}`}
-            className="flex items-center justify-center w-28 md:w-36 h-6 shrink-0"
+            className="flex items-center justify-center w-36 md:w-48 h-10 md:h-12 shrink-0"
           >
             <img
               alt={logo.alt}
               width={144}
-              height={24}
-              className="pointer-events-none max-h-4 md:max-h-5 w-auto select-none dark:brightness-0 dark:invert object-contain"
-              style={{ aspectRatio: "144 / 24" }}
+              height={48}
+              className="pointer-events-none max-h-8 md:max-h-10 w-auto select-none dark:brightness-0 dark:invert object-contain scale-[4.2] md:scale-[4.8]"
+              style={{ aspectRatio: "144 / 48" }}
               loading="lazy"
               src={logo.src}
             />

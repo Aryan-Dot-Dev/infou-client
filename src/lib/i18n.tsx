@@ -13,7 +13,7 @@ export const translations = {
     "action.readWhitepapers": "Read Whitepapers",
 
     // Navbar
-    "nav.brand": "Infou Consultancy",
+    "nav.brand": "Infou Consultancy Services",
     "nav.about": "About Us",
     "nav.services": "Services",
     "nav.blogs": "Blogs",
@@ -22,17 +22,18 @@ export const translations = {
     // Hero Section
     "hero.subtitle": "Sovereign Integration Desk",
     "hero.title": "Government Funding Strategy for Indian",
-    "hero.desc": "Precision-engineered compliance and allocation frameworks designed to unlock institutional capital across state and central schemes.",
+    "hero.desc": "1200+ funding opportunities exist across India. Our AI tool finds your best matches in 30 seconds and our experts handle everything after.",
     "hero.assessmentBtn": "Start for Free",
     "hero.servicesBtn": "View Services Catalog",
 
     // Metrics Row
     "metrics.activeSchemes": "Active Schemes",
-    "metrics.statesMapped": "States Mapped",
+    "metrics.statesMapped": "States Covered",
     "metrics.capitalSecured": "Capital Secured",
-    "metrics.capitalOptimized": "Capital Optimized",
+    "metrics.projectsCompleted": "Projects Completed",
     "metrics.complianceError": "Compliance Error",
-    "metrics.accuracy": "Accuracy",
+    "metrics.accuracy": "Match Accuracy",
+    "metrics.successRate": "Success Rate",
 
     // India Map Section
     "map.hudActive": "Active Territory",
@@ -43,33 +44,33 @@ export const translations = {
     // Why Choose ICS
     "choose.badge": "",
     "choose.title": "Why Choose ICS?",
-    "choose.desc": "We help startups and MSMEs identify the right government schemes, grants, incubators, and funding opportunities with proper guidance, research and strategic support across India",
-    "choose.card1.title": "Diagnostic First-Pass Success",
-    "choose.card1.desc": "Our proprietary pre-submission audit frameworks eliminate policy loopholes, ensuring compliance and maximizing approval probability.",
-    "choose.card2.title": "Capital Optimized",
-    "choose.card2.desc": "Direct policy integration across central and state-level ministries to map, claim, and disburse specialized project incentives.",
-    "choose.card3.title": "Accelerated Disbursement",
-    "choose.card3.desc": "Bypass bureaucratic delays and process bottlenecks through automated, digitized milestones and active policy monitoring.",
+    "choose.desc": "We help startups and MSMEs identify the right government schemes, grants, incubators, and funding opportunities with proper guidance, research and strategic support across India.",
+    "choose.card1.title": "Match Accuracy",
+    "choose.card1.desc": "Our AI cross checks your sector, stage, state and profile across 1200+ schemes before recommending a single option. No irrelevant results. No wasted applications.",
+    "choose.card2.title": "Professional Experts",
+    "choose.card2.desc": "Research documents, applications, portals, follow-ups. One dedicated team handles everything. You focus on your business. We handle the funding.",
+    "choose.card3.title": "Transparent. Always!",
+    "choose.card3.desc": "No hidden fees. No surprise charges. No false promises. What we quote is what you pay and what we promise is what we deliver. Every step visible. Every update shared. Nothing hidden. Ever.",
 
     // How ICS Works
     "process.badge": "Our Process",
-    "process.title": "How ICS Works?",
-    "process.desc": "Our structured engagement model is engineered for rapid execution, absolute clarity, and zero friction.",
-    "process.step1.title": "Discovery Call",
-    "process.step1.duration": "30 min · free",
-    "process.step1.desc": "We learn your business objectives, project expansion goals, and state/central capital needs. No sales pitch — just policy matching clarity.",
-    "process.step2.title": "Strategy & Scoping",
-    "process.step2.duration": "~3 days",
-    "process.step2.desc": "Detailed mapping of your projects against 130+ active government schemes.",
-    "process.step3.title": "Diagnostic Audit",
-    "process.step3.duration": "~7 days",
-    "process.step3.desc": "Deep compliance diagnostics and document structure verification.",
-    "process.step4.title": "File & Liaise",
-    "process.step4.duration": "2–8 weeks",
-    "process.step4.desc": "We draft, structure, and submit applications while managing active department liaising and providing transparent weekly updates.",
-    "process.step5.title": "Disbursal & Scale",
-    "process.step5.duration": "ongoing",
-    "process.step5.desc": "Navigating final audits to secure capital disbursal. We remain on retainer to map future project expansions to active policy cycles.",
+    "process.title": "How ICS Works",
+    "process.desc": "Our structured 5-step process is designed to make funding discovery, scheme guidance, and startup support simple, fast, and easy for every business.",
+    "process.step1.title": "Free Discovery Call",
+    "process.step1.duration": "30 minutes",
+    "process.step1.desc": "Tell us about your business. We listen, ask the right questions, and figure out exactly what funding you need. Just an honest conversation about your business and what funding could look like for you.",
+    "process.step2.title": "Funding Research",
+    "process.step2.duration": "48 hours",
+    "process.step2.desc": "We search our database of 1200+ schemes, grants, loans and private funds and identify the top opportunities for your specific business. You get a clear report of what is available and why.",
+    "process.step3.title": "Documents Preparation",
+    "process.step3.duration": "3 to 7 days",
+    "process.step3.desc": "We prepare everything needed - business plan, pitch deck, application forms and supporting documents. You review and approve. We handle the hard part.",
+    "process.step4.title": "Filed & Tracked",
+    "process.step4.duration": "2 to 8 weeks",
+    "process.step4.desc": "We submit your applications on the right portals, follow up with departments, and send you a WhatsApp update every 3 days. You always know exactly where things stand.",
+    "process.step5.title": "Decision & Beyond",
+    "process.step5.duration": "Ongoing",
+    "process.step5.desc": "When a decision comes, we walk you through the next steps. Approved - we help you with next steps. Not approved - we identify the next best option and keep going.",
 
     // Testimonials
     "testimonials.badge": "Client Mandates",
@@ -158,15 +159,34 @@ const setGoogleTranslateCookie = (lang: string) => {
   if (typeof document === "undefined") return;
   const domain = window.location.hostname;
 
-  // Clear any existing cookies first to avoid duplicates
-  document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-  document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${domain}`;
-  document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${domain}`;
+  // Split hostname to find the root domain for clearing cookies
+  const domainParts = domain.split(".");
+  const rootDomain = domainParts.length > 1 ? domainParts.slice(-2).join(".") : domain;
 
+  // Define all possible cookie paths and domains to clear them thoroughly
+  const cookieKeys = ["googtrans"];
+  const domains = [
+    "",
+    domain,
+    `.${domain}`,
+    rootDomain,
+    `.${rootDomain}`
+  ];
+  const paths = ["/", "/index.html"];
+
+  // Clear existing cookies to prevent duplicates
+  cookieKeys.forEach((key) => {
+    domains.forEach((d) => {
+      paths.forEach((p) => {
+        const domainStr = d ? `; domain=${d}` : "";
+        document.cookie = `${key}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${p}${domainStr}`;
+      });
+    });
+  });
+
+  // Now set the new cookie on path=/ with host-only (no domain parameter)
   if (lang !== "en") {
     document.cookie = `googtrans=/en/${lang}; path=/`;
-    document.cookie = `googtrans=/en/${lang}; path=/; domain=${domain}`;
-    document.cookie = `googtrans=/en/${lang}; path=/; domain=.${domain}`;
   }
 };
 

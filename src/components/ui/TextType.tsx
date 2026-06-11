@@ -181,7 +181,8 @@ const TextType = ({
     Component,
     {
       ref: containerRef,
-      className: `text-type ${className}`,
+      className: `text-type ${className} notranslate`,
+      translate: 'no',
       ...props
     },
     <span className="text-type__content" style={{ color: getCurrentTextColor() }}>

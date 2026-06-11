@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Award, ShieldCheck, Zap, HeartHandshake, Heart, Info, Briefcase, Sparkles } from "lucide-react";
+import { ScrollStack, ScrollStackItem } from "./ScrollStack";
 
 interface TeamMember {
   id: string;
@@ -23,7 +24,7 @@ const team: TeamMember[] = [
     id: "founder",
     name: "Sudhanshu Sharma",
     age: "",
-    role: "Founding Team Member",
+    role: "Founding Member",
     tagline: "",
     bio: "Sovereign funding strategy advisor with 15+ years of experience optimizing over ₹42B+ in growth funds.",
     image: "https://imgh.in/host/w0f7f5",
@@ -55,7 +56,7 @@ const team: TeamMember[] = [
     id: "compliance",
     name: "Yatharth Chopra",
     age: "",
-    role: "Backend Engineer",
+    role: "Data Analyst",
     tagline: "",
     bio: "Backend Engineer powering our AI applications through his expertise in backend and data handling",
     image: "https://imgh.in/host/78ea4b",
@@ -89,21 +90,14 @@ function ProfileCard({ member, index }: { member: TeamMember; index: number }) {
   const [liked, setLiked] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
 
-  const handleCtaClick = () => {
-    window.dispatchEvent(
-      new CustomEvent("open-assessment", { detail: { source: "manual_click" } })
-    );
-  };
-
   return (
     <div
-      className="group relative rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer select-none"
+      className="group relative rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-default select-none"
       style={{
         aspectRatio: "3/4.2",
         transform: `rotate(${index % 2 === 0 ? "-1" : "1"}deg)`,
         transition: "transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.5s ease",
       }}
-      onClick={handleCtaClick}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLElement).style.transform = "rotate(0deg) scale(1.03)";
       }}
@@ -116,17 +110,16 @@ function ProfileCard({ member, index }: { member: TeamMember; index: number }) {
         <img
           src={member.image}
           alt={member.name}
-          className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:blur-[4px] group-hover:brightness-[0.9]"
+          className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
           loading="lazy"
         />
       </div>
 
       {/* Gradient overlays */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/30 to-transparent transition-opacity duration-500 group-hover:opacity-0" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-transparent transition-opacity duration-500 group-hover:opacity-0" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-0" />
 
-      {/* Default Bottom Content (Name & Role) - Fades/slides down on hover */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 p-5 transition-all duration-500 group-hover:opacity-0 group-hover:translate-y-4">
+      {/* Default Bottom Content (Name & Role) */}
+      <div className="absolute bottom-0 left-0 right-0 z-10 p-5">
         {/* Name & Role */}
         <div className="mb-3">
           <div className="flex items-center gap-2 mb-0.5">
@@ -141,32 +134,50 @@ function ProfileCard({ member, index }: { member: TeamMember; index: number }) {
           </div>
         </div>
       </div>
-
-      {/* Hover Glass Overlay */}
-      <div className="absolute inset-0 z-20 flex flex-col justify-between p-6 opacity-0 group-hover:opacity-100 transition-all duration-500 bg-black/50 backdrop-blur-sm translate-y-4 group-hover:translate-y-0">
-        {/* Header of overlay: Icon + Name + Role */}
-        <div>
-
-          {/* Bio */}
-          <p className="text-white/90 text-xs leading-relaxed mb-4 font-medium">
-            {member.bio}
-          </p>
-        </div>
-      </div>
-
-      {/* Swipe decorative background hints */}
-      <div className="absolute inset-y-0 left-0 w-1/3 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-orange-500/5 to-transparent pointer-events-none" />
-      <div className="absolute inset-y-0 right-0 w-1/3 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-l from-orange-500/5 to-transparent pointer-events-none" />
     </div>
   );
 }
 
 export function FounderCard() {
+  const [isTabletOrDesktop, setIsTabletOrDesktop] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsTabletOrDesktop(window.innerWidth >= 640);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  if (isTabletOrDesktop) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-7xl mx-auto px-4 py-8 z-10 relative">
+        {team.map((member, index) => (
+          <ProfileCard key={member.id} member={member} index={index} />
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-7xl mx-auto px-4 py-8 z-10 relative">
-      {team.map((member, index) => (
-        <ProfileCard key={member.id} member={member} index={index} />
-      ))}
+    <div className="w-full max-w-md mx-auto z-10 relative">
+      <ScrollStack
+        useWindowScroll={true}
+        itemDistance={50}
+        itemStackDistance={24}
+        stackPosition="10%"
+        scaleEndPosition="4%"
+        baseScale={0.88}
+        rotationAmount={1}
+        blurAmount={1}
+      >
+        {team.map((member, index) => (
+          <ScrollStackItem key={member.id}>
+            <ProfileCard member={member} index={index} />
+          </ScrollStackItem>
+        ))}
+      </ScrollStack>
     </div>
   );
 }

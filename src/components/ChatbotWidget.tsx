@@ -41,7 +41,7 @@ const POLICY_ANSWERS: Record<string, { text: string; isActionable: boolean; type
 const WELCOME_MESSAGE: Message = {
   id: "welcome",
   sender: "bot",
-  text: "Welcome to Infou Consultancy. I am your automated policy assistant. Type a query to check your government subsidy eligibility.",
+  text: "Welcome to ICS. I am your AI assistant. Please type your query.",
   timestamp: new Date()
 };
 
@@ -171,16 +171,16 @@ export function ChatbotWidget() {
   };
 
   return (
-    <div ref={containerRef} className="fixed bottom-6 right-6 z-40 font-sans text-left">
+    <div ref={containerRef} className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 font-sans text-left">
       {/* Chat Window Panel */}
       {isOpen && (
-        <div className="absolute bottom-16 right-0 w-85 sm:w-95 h-120 bg-white border border-zinc-200 rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 animate-in slide-in-from-bottom-5 duration-200 origin-bottom-right">
+        <div className="absolute bottom-14 sm:bottom-16 right-0 w-[calc(100vw-32px)] sm:w-95 h-[65vh] sm:h-120 bg-white border border-zinc-200 rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 animate-in slide-in-from-bottom-5 duration-200 origin-bottom-right">
 
           {/* Chat Header */}
           <div className="bg-zinc-50 border-b border-zinc-150 px-4 py-4 flex items-center justify-between select-none">
             <div className="flex items-center gap-2">
               <h4 className="text-sm font-bold text-black tracking-tight">
-                Infou Assistant
+                ICS AI Assistant
               </h4>
             </div>
             <button
@@ -235,7 +235,7 @@ export function ChatbotWidget() {
               <button
                 type="submit"
                 disabled={isSending}
-                className="w-9 h-9 bg-primary text-white hover:bg-primary/90 rounded-lg flex items-center justify-center transition-colors active:scale-95 duration-100 shrink-0 cursor-pointer"
+                className="w-9 h-9 bg-[#ea580c] text-white hover:bg-[#ea580c]/90 rounded-lg flex items-center justify-center transition-colors active:scale-95 duration-100 shrink-0 cursor-pointer"
                 title="Send Message"
               >
                 <Send size={12} />
@@ -248,27 +248,27 @@ export function ChatbotWidget() {
       {/* Floating Toggle Button Bubble */}
       <div className="relative flex flex-col items-end animate-bounce-slow">
         {!isOpen && (
-          <div className="absolute bottom-16 right-0 mb-3 bg-[#FFF8F5] border-2 border-black rounded-2xl px-4 py-2.5 shadow-[3px_3px_0px_rgba(0,0,0,1)] text-xs font-extrabold text-black uppercase tracking-wider select-none whitespace-nowrap pointer-events-none animate-in fade-in slide-in-from-bottom-2 duration-300 z-10">
+          <div className="hidden md:block absolute bottom-16 right-0 mb-3 bg-[#FFF8F5] border-2 border-black rounded-2xl px-4 py-2.5 shadow-[3px_3px_0px_rgba(0,0,0,1)] text-xs font-extrabold text-black uppercase tracking-wider select-none whitespace-nowrap pointer-events-none animate-in fade-in slide-in-from-bottom-2 duration-300 z-10">
             Let's chat!
             {/* Cartoon tail pointing down-right */}
             <div className="absolute -bottom-2 right-6 w-3.5 h-3.5 bg-[#FFF8F5] border-r-2 border-b-2 border-black rotate-45 z-0" />
           </div>
         )}
-        <ClickSpark sparkColor="#fff" sparkRadius={24} sparkCount={8} duration={400}>
+        <ClickSpark sparkColor="#fff" sparkRadius={20} sparkCount={6} duration={350}>
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="w-14 h-14 bg-primary hover:bg-primary/90 text-white rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer border border-primary relative group"
+            className="w-12 h-12 sm:w-14 sm:h-14 bg-[#ea580c] hover:bg-[#ea580c]/90 text-white rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer border border-[#ea580c] relative group"
             title="Consult AI Policy Advisor"
           >
             {isOpen ? (
               <X size={20} className="animate-in spin-in-90 duration-200" />
             ) : (
               <>
-                <MessageSquare size={20} className="animate-in zoom-in-50 duration-200" />
+                <MessageSquare size={18} className="animate-in zoom-in-50 duration-200 sm:w-5 sm:h-5" />
                 {/* Visual unread notification dot */}
-                <span className="absolute top-0 right-0 flex h-3.5 w-3.5 -mt-0.5 -mr-0.5">
+                <span className="absolute top-0 right-0 flex h-3 w-3 -mt-0.5 -mr-0.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-black"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-black"></span>
                 </span>
               </>
             )}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense } from "react";
-import { CheckCircle, Copy, Check, X, ShieldAlert, Award, FileSpreadsheet, PlayCircle, Phone } from "lucide-react";
+import { CheckCircle, Copy, Check, X, ShieldAlert, Award, FileSpreadsheet, PlayCircle, Phone, Mail, User, Building } from "lucide-react";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
@@ -36,6 +36,7 @@ export function AssessmentPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [generatedPayload, setGeneratedPayload] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+  const [submitProgress, setSubmitProgress] = useState(0);
 
   // Recommendation states
   const [recommendations, setRecommendations] = useState<any[] | null>(null);
@@ -57,6 +58,29 @@ export function AssessmentPage() {
       document.body.style.overflow = "";
     };
   }, [isEditModalOpen]);
+
+  // Simulated progress logic for premium loading feel
+  useEffect(() => {
+    let interval: any;
+    if (isSubmitting) {
+      setSubmitProgress(0);
+      interval = setInterval(() => {
+        setSubmitProgress((prev) => {
+          if (prev >= 95) {
+            clearInterval(interval);
+            return 95;
+          }
+          const increment = prev < 30 ? 3 : prev < 70 ? 2 : prev < 90 ? 1 : 0.5;
+          return Math.min(prev + increment, 95);
+        });
+      }, 50);
+    } else {
+      setSubmitProgress(0);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isSubmitting]);
 
   // Load results from sessionStorage if redirected from auto-popup submit
   useEffect(() => {
@@ -144,6 +168,36 @@ export function AssessmentPage() {
     setRequestPayload(reqJson);
 
     try {
+      // Securely save the lead to Neon DB and wait for it
+      const dbResponse = await fetch("https://rw4taxkwgg.execute-api.ap-south-1.amazonaws.com/dev/api/save-assessment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          businessName: formData.businessName.trim(),
+          businessType: formData.businessType,
+          businessDescription: formData.businessDescription.trim()
+        })
+      });
+
+      if (!dbResponse.ok) {
+        let dbErrorMsg = `Database Error: HTTP ${dbResponse.status}`;
+        try {
+          const errData = await dbResponse.json();
+          dbErrorMsg = typeof errData === "object" ? JSON.stringify(errData, null, 2) : errData;
+        } catch (_) {
+          try {
+            const txt = await dbResponse.text();
+            if (txt) dbErrorMsg = txt;
+          } catch (__) {}
+        }
+        throw new Error(dbErrorMsg);
+      }
+
       const response = await fetch(apiUrl(`/api/recommend-schemes`), {
         method: "POST",
         headers: {
@@ -164,6 +218,11 @@ export function AssessmentPage() {
       }
 
       const resData = await response.json();
+
+      // Animate progress to 100
+      setSubmitProgress(100);
+      await new Promise((resolve) => setTimeout(resolve, 350));
+
       setRecommendations(resData.recommendations || []);
       setGeneratedPayload(JSON.stringify(resData, null, 2));
 
@@ -387,36 +446,50 @@ export function AssessmentPage() {
 
       <div className="w-full px-6 transition-all duration-500 ease-in-out max-w-7xl z-10 animate-in fade-in duration-300">
         {apiError ? (
-          <div className="bg-white border border-zinc-200 rounded-2xl p-8 md:p-12 text-left shadow-sm max-w-xl mx-auto">
-            <div className="space-y-6 animate-in fade-in-0 duration-200">
-              <div className="flex flex-col items-center justify-center text-center py-4">
-                <div className="w-12 h-12 bg-red-50 text-red-600 border border-red-100 flex items-center justify-center rounded-full mb-3 shadow-xs">
-                  <X size={24} strokeWidth={2} />
-                </div>
-                <h1 className="font-sans text-lg font-extrabold text-black uppercase tracking-wider">
-                  Advisory Database Offline
-                </h1>
-                <p className="text-zinc-550 font-sans text-xs max-w-sm mt-1 leading-relaxed text-center">
-                  The recommendations service returned the following diagnostic warning:
-                </p>
-                <div className="bg-red-50/50 border border-red-200 text-red-800 rounded-xl px-4 py-3.5 text-xs leading-relaxed max-w-lg mt-4 font-sans w-full text-center">
-                  {apiError}
-                </div>
+          <div className="bg-white border border-zinc-200 rounded-2xl p-8 md:p-12 text-center shadow-sm max-w-xl mx-auto space-y-6">
+            <div className="flex flex-col items-center justify-center py-4">
+              <div className="w-12 h-12 bg-red-50 text-red-500 border border-red-100 flex items-center justify-center rounded-full mb-3 shadow-xs">
+                <X size={24} strokeWidth={2.5} />
               </div>
+              <h1 className="font-sans text-lg font-extrabold text-black uppercase tracking-wider">
+                Submission Error
+              </h1>
+              <p className="text-zinc-500 font-sans text-xs max-w-sm mt-2 leading-relaxed text-center">
+                We encountered an issue while processing your assessment request:
+              </p>
+              <pre className="mt-3 w-full text-left font-mono text-[10px] text-red-600 bg-red-50/50 border border-red-100 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-40 overflow-y-auto">
+                {apiError}
+              </pre>
+            </div>
 
-              <div className="pt-4 flex justify-center">
-                <ClickSpark sparkColor="#000" sparkRadius={20} sparkCount={8} duration={350}>
-                  <button
-                    onClick={() => {
-                      setApiError(null);
-                      setIsSuccess(false);
-                    }}
-                    className="border border-zinc-200 text-black px-10 py-3.5 text-xs font-bold tracking-widest uppercase rounded-lg hover:bg-zinc-50 transition-colors active:scale-95 duration-100 cursor-pointer"
-                  >
-                    Retry Diagnostics Form
-                  </button>
-                </ClickSpark>
-              </div>
+            {/* Direct Call Button (User CTA) */}
+            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 max-w-sm mx-auto flex flex-col items-center justify-center space-y-2">
+              <span className="text-[9px] font-mono tracking-widest text-zinc-400 uppercase select-none">
+                Direct Eligibility Hotline
+              </span>
+              <ClickSpark sparkColor="#ea580c" sparkRadius={20} sparkCount={8} duration={350} className="w-full">
+                <a
+                  href="tel:+91 8447198483"
+                  className="bg-white border border-zinc-200 text-zinc-900 px-5 py-3 text-xs font-bold tracking-widest uppercase rounded-full hover:bg-zinc-50 transition-all flex items-center justify-center gap-2 cursor-pointer w-full shadow-xs active:scale-95"
+                >
+                  <Phone size={13} className="text-primary" />
+                  +91 8447198483
+                </a>
+              </ClickSpark>
+            </div>
+
+            <div className="pt-2 flex justify-center">
+              <ClickSpark sparkColor="#000" sparkRadius={20} sparkCount={8} duration={350}>
+                <button
+                  onClick={() => {
+                    setApiError(null);
+                    setIsSuccess(false);
+                  }}
+                  className="border border-zinc-200 text-black px-10 py-3.5 text-xs font-bold tracking-widest uppercase rounded-lg hover:bg-zinc-50 transition-colors active:scale-95 duration-100 cursor-pointer"
+                >
+                  Retry Diagnostics Form
+                </button>
+              </ClickSpark>
             </div>
           </div>
         ) : !isSuccess ? (
@@ -429,8 +502,64 @@ export function AssessmentPage() {
             </div>
 
             {/* Compact Form Card */}
-            <div className="bg-white border border-zinc-200 rounded-2xl p-6 md:p-8 shadow-sm w-full">
-              {renderForm()}
+            <div className="bg-white border border-zinc-200 rounded-2xl p-6 md:p-8 shadow-sm w-full min-h-[350px] flex flex-col justify-center">
+              {isSubmitting ? (
+                <div className="py-12 flex flex-col items-center justify-center text-center space-y-6 animate-in fade-in duration-300">
+                  <div className="relative flex items-center justify-center">
+                    <svg className="w-20 h-20 transform -rotate-90">
+                      <circle
+                        cx="40"
+                        cy="40"
+                        r="34"
+                        stroke="#f4f4f5"
+                        strokeWidth="6"
+                        fill="transparent"
+                      />
+                      <circle
+                        cx="40"
+                        cy="40"
+                        r="34"
+                        stroke="#ea580c"
+                        strokeWidth="6"
+                        fill="transparent"
+                        strokeDasharray={2 * Math.PI * 34}
+                        strokeDashoffset={2 * Math.PI * 34 * (1 - Math.round(submitProgress) / 100)}
+                        strokeLinecap="round"
+                        className="transition-all duration-75 ease-out"
+                      />
+                    </svg>
+                    <span className="absolute text-base font-extrabold text-black tracking-tighter">
+                      {Math.round(submitProgress)}%
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 max-w-xs">
+                    <h3 className="font-sans text-base font-extrabold text-[#1c1d1a] uppercase tracking-wider">
+                      {submitProgress < 30 ? "Initializing Profile Analysis" :
+                        submitProgress < 60 ? "Scanning Ministry Databases" :
+                          submitProgress < 85 ? "Checking Policy Criteria" :
+                            submitProgress < 100 ? "Compiling Match Report" :
+                              "Matched Successfully!"}
+                    </h3>
+                    <p className="text-zinc-500 font-sans text-xs leading-relaxed">
+                      {submitProgress < 30 ? "Setting up diagnostics environment..." :
+                        submitProgress < 60 ? "Evaluating profile against 130+ central & state policies..." :
+                          submitProgress < 85 ? "Validating operational rules and corporate compliance..." :
+                            submitProgress < 100 ? "Filtering recommendations for the best enterprise fits..." :
+                              "Preparing recommendations report..."}
+                    </p>
+                  </div>
+
+                  <div className="w-full max-w-xs bg-zinc-100 h-1.5 rounded-full overflow-hidden border border-zinc-200/50">
+                    <div
+                      className="bg-primary h-full rounded-full transition-all duration-75 ease-out shadow-[0_0_8px_rgba(255,90,54,0.5)]"
+                      style={{ width: `${submitProgress}%` }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                renderForm()
+              )}
             </div>
           </div>
         ) : (
@@ -445,48 +574,70 @@ export function AssessmentPage() {
             </div>
 
             {/* 2. Collapsible Profile Panel */}
-            <div className="bg-white border border-zinc-200 rounded-2xl p-4 shadow-xs text-left transition-all duration-300">
+            <div className="bg-white border border-zinc-200 rounded-2xl p-5 shadow-xs text-left transition-all duration-300">
               {/* Collapsed horizontal summary panel */}
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 animate-in fade-in duration-200">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1">
                   {/* Entity Profile */}
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase select-none block">
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-mono tracking-widest text-zinc-400 uppercase select-none block">
                       Enterprise Entity
                     </span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-sans font-extrabold text-base text-black">
-                        {formData.businessName || "Unnamed Business"}
-                      </span>
-                      <span className="px-2 py-0.5 bg-zinc-100 border border-zinc-200 rounded text-[9px] font-bold text-zinc-650 uppercase tracking-wider">
-                        {formData.businessType || "Unspecified Sector"}
-                      </span>
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-zinc-50 border border-zinc-150 flex items-center justify-center text-zinc-500 shrink-0">
+                        <Building className="w-4 h-4" />
+                      </div>
+                      <div className="flex flex-col text-left">
+                        <span className="font-sans font-extrabold text-sm text-black leading-tight">
+                          {formData.businessName || "Unnamed Business"}
+                        </span>
+                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wide mt-1">
+                          {formData.businessType || "Unspecified Sector"}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
                   {/* Key Representative */}
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase select-none block">
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-mono tracking-widest text-zinc-400 uppercase select-none block">
                       Representative
                     </span>
-                    <span className="font-sans font-bold text-sm text-zinc-800 block">
-                      {formData.name}
-                    </span>
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-zinc-50 border border-zinc-150 flex items-center justify-center text-zinc-500 shrink-0">
+                        <User className="w-4 h-4" />
+                      </div>
+                      <span className="font-sans font-extrabold text-sm text-zinc-800 leading-tight">
+                        {formData.name}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Contact details */}
-                  <div className="space-y-1">
-                    <span className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase select-none block">
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-mono tracking-widest text-zinc-400 uppercase select-none block">
                       Contact Information
                     </span>
-                    <span className="font-sans text-xs text-zinc-655 block">
-                      {formData.email} &bull; {formData.phone}
-                    </span>
+                    <div className="flex flex-col gap-1.5 text-left">
+                      <a href={`mailto:${formData.email}`} className="flex items-center gap-2 text-xs text-zinc-600 hover:text-primary transition-colors w-fit">
+                        <div className="w-5 h-5 rounded-md bg-zinc-50 border border-zinc-150 flex items-center justify-center text-zinc-400 shrink-0">
+                          <Mail className="w-3 h-3" />
+                        </div>
+                        <span className="font-medium truncate max-w-[200px]">{formData.email}</span>
+                      </a>
+                      <a href={`tel:${formData.phone}`} className="flex items-center gap-2 text-xs text-zinc-600 hover:text-primary transition-colors w-fit">
+                        <div className="w-5 h-5 rounded-md bg-zinc-50 border border-zinc-150 flex items-center justify-center text-zinc-400 shrink-0">
+                          <Phone className="w-3 h-3" />
+                        </div>
+                        <span className="font-semibold">{formData.phone}</span>
+                      </a>
+                    </div>
                   </div>
                 </div>
 
                 <div className="pt-2 lg:pt-0 lg:border-l lg:border-zinc-100 lg:pl-6 flex items-center">
                   <button
+                    type="button"
                     onClick={() => setIsEditModalOpen(true)}
                     className="w-full lg:w-auto border border-zinc-200 hover:border-black text-black px-5 py-2.5 text-xs font-bold tracking-widest uppercase rounded-lg hover:bg-zinc-50 transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-xs"
                   >
@@ -591,97 +742,146 @@ export function AssessmentPage() {
               <X size={16} strokeWidth={2.5} />
             </button>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <h3 className="font-sans text-lg font-extrabold text-black uppercase tracking-wider">
-                  SUBMIT
-                </h3>
-              </div>
-
-              <div className="space-y-4">
-                {/* Business Type Selector (Active) */}
-                <div className="space-y-1">
-                  <Label htmlFor="businessType" className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-                    Business Vertical
-                  </Label>
-                  <Select
-                    value={formData.businessType}
-                    onValueChange={(val) => {
-                      setFormData((prev) => ({ ...prev, businessType: val }));
-                      if (errors.businessType) {
-                        setErrors((prev) => {
-                          const next = { ...prev };
-                          delete next.businessType;
-                          return next;
-                        });
-                      }
-                    }}
-                  >
-                    <SelectTrigger
-                      id="businessType"
-                      className={`w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-black outline-none h-10 cursor-pointer ${errors.businessType ? "border-red-500" : ""
-                        }`}
-                    >
-                      <SelectValue placeholder="Select business sector" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border border-zinc-250 text-black">
-                      <SelectItem value="Technology">Technology & SaaS</SelectItem>
-                      <SelectItem value="Manufacturing">Heavy Manufacturing & PLI</SelectItem>
-                      <SelectItem value="Renewable Energy">Renewable Energy & Infrastructure</SelectItem>
-                      <SelectItem value="Healthcare">Healthcare & Biotech</SelectItem>
-                      <SelectItem value="Agriculture">Agri-tech & Rural Development</SelectItem>
-                      <SelectItem value="Services">Professional Services & Consulting</SelectItem>
-                      <SelectItem value="Other">Other Enterprise Sector</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.businessType && <span className="text-[9px] font-semibold text-red-500 block">{errors.businessType}</span>}
+            {isSubmitting ? (
+              <div className="py-12 flex flex-col items-center justify-center text-center space-y-6 animate-in fade-in duration-300">
+                <div className="relative flex items-center justify-center">
+                  <svg className="w-20 h-20 transform -rotate-90">
+                    <circle
+                      cx="40"
+                      cy="40"
+                      r="34"
+                      stroke="#f4f4f5"
+                      strokeWidth="6"
+                      fill="transparent"
+                    />
+                    <circle
+                      cx="40"
+                      cy="40"
+                      r="34"
+                      stroke="#ea580c"
+                      strokeWidth="6"
+                      fill="transparent"
+                      strokeDasharray={2 * Math.PI * 34}
+                      strokeDashoffset={2 * Math.PI * 34 * (1 - Math.round(submitProgress) / 100)}
+                      strokeLinecap="round"
+                      className="transition-all duration-75 ease-out"
+                    />
+                  </svg>
+                  <span className="absolute text-base font-extrabold text-black tracking-tighter">
+                    {Math.round(submitProgress)}%
+                  </span>
                 </div>
 
-                {/* Description (Active) */}
-                <div className="space-y-1">
-                  <Label htmlFor="businessDescription" className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-                    Business & Funding Goals Description
-                  </Label>
-                  <Textarea
-                    id="businessDescription"
-                    name="businessDescription"
-                    rows={4}
-                    value={formData.businessDescription}
-                    onChange={handleInputChange}
-                    className={`text-xs rounded-lg border-zinc-200 focus-visible:ring-black/20 min-h-[100px] resize-none ${errors.businessDescription ? "border-red-500" : ""
-                      }`}
+                <div className="space-y-2 max-w-xs mx-auto">
+                  <h3 className="font-sans text-base font-extrabold text-[#1c1d1a] uppercase tracking-wider">
+                    {submitProgress < 30 ? "Initializing Profile Analysis" :
+                      submitProgress < 60 ? "Scanning Ministry Databases" :
+                        submitProgress < 85 ? "Checking Policy Criteria" :
+                          submitProgress < 100 ? "Compiling Match Report" :
+                            "Matched Successfully!"}
+                  </h3>
+                  <p className="text-zinc-500 font-sans text-xs leading-relaxed">
+                    {submitProgress < 30 ? "Setting up diagnostics environment..." :
+                      submitProgress < 60 ? "Evaluating profile against 130+ central & state policies..." :
+                        submitProgress < 85 ? "Validating operational rules and corporate compliance..." :
+                          submitProgress < 100 ? "Filtering recommendations for the best enterprise fits..." :
+                            "Preparing recommendations report..."}
+                  </p>
+                </div>
+
+                <div className="w-full max-w-xs bg-zinc-100 h-1.5 rounded-full overflow-hidden border border-zinc-200/50 mx-auto">
+                  <div
+                    className="bg-primary h-full rounded-full transition-all duration-75 ease-out shadow-[0_0_8px_rgba(255,90,54,0.5)]"
+                    style={{ width: `${submitProgress}%` }}
                   />
-                  {errors.businessDescription && (
-                    <span className="text-[9px] font-semibold text-red-500 block">{errors.businessDescription}</span>
-                  )}
                 </div>
               </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <h3 className="font-sans text-lg font-extrabold text-black uppercase tracking-wider">
+                    SUBMIT
+                  </h3>
+                </div>
 
-              {/* Actions Row */}
-              <div className="pt-2 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="border border-zinc-200 hover:border-black text-black px-6 py-2.5 text-xs font-bold tracking-widest uppercase rounded-lg hover:bg-zinc-50 transition-colors cursor-pointer text-center"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-primary text-white px-8 py-2.5 text-xs font-bold tracking-widest uppercase rounded-lg hover:bg-primary/90 transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    "SUBMIT"
-                  )}
-                </button>
-              </div>
-            </form>
+                <div className="space-y-4">
+                  {/* Business Type Selector (Active) */}
+                  <div className="space-y-1">
+                    <Label htmlFor="businessType" className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                      Business Vertical
+                    </Label>
+                    <Select
+                      value={formData.businessType}
+                      onValueChange={(val) => {
+                        setFormData((prev) => ({ ...prev, businessType: val }));
+                        if (errors.businessType) {
+                          setErrors((prev) => {
+                            const next = { ...prev };
+                            delete next.businessType;
+                            return next;
+                          });
+                        }
+                      }}
+                    >
+                      <SelectTrigger
+                        id="businessType"
+                        className={`w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-black outline-none h-10 cursor-pointer ${errors.businessType ? "border-red-500" : ""
+                          }`}
+                      >
+                        <SelectValue placeholder="Select business sector" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border border-zinc-250 text-black">
+                        <SelectItem value="Technology">Technology & SaaS</SelectItem>
+                        <SelectItem value="Manufacturing">Heavy Manufacturing & PLI</SelectItem>
+                        <SelectItem value="Renewable Energy">Renewable Energy & Infrastructure</SelectItem>
+                        <SelectItem value="Healthcare">Healthcare & Biotech</SelectItem>
+                        <SelectItem value="Agriculture">Agri-tech & Rural Development</SelectItem>
+                        <SelectItem value="Services">Professional Services & Consulting</SelectItem>
+                        <SelectItem value="Other">Other Enterprise Sector</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.businessType && <span className="text-[9px] font-semibold text-red-500 block">{errors.businessType}</span>}
+                  </div>
+
+                  {/* Description (Active) */}
+                  <div className="space-y-1">
+                    <Label htmlFor="businessDescription" className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                      Business & Funding Goals Description
+                    </Label>
+                    <Textarea
+                      id="businessDescription"
+                      name="businessDescription"
+                      rows={4}
+                      value={formData.businessDescription}
+                      onChange={handleInputChange}
+                      className={`text-xs rounded-lg border-zinc-200 focus-visible:ring-black/20 min-h-[100px] resize-none ${errors.businessDescription ? "border-red-500" : ""
+                        }`}
+                    />
+                    {errors.businessDescription && (
+                      <span className="text-[9px] font-semibold text-red-500 block">{errors.businessDescription}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Actions Row */}
+                <div className="pt-2 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditModalOpen(false)}
+                    className="border border-zinc-200 hover:border-black text-black px-6 py-2.5 text-xs font-bold tracking-widest uppercase rounded-lg hover:bg-zinc-50 transition-colors cursor-pointer text-center"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="bg-primary text-white px-8 py-2.5 text-xs font-bold tracking-widest uppercase rounded-lg hover:bg-primary/90 transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                  >
+                    SUBMIT
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

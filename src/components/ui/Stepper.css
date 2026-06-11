@@ -91,7 +91,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 0.5rem;
-  background-color: #FF5A36;
+  background-color: #ea580c;
   color: #fff;
   font-weight: 700;
   font-size: 0.75rem;
@@ -103,13 +103,13 @@
 }
 
 .next-button:hover {
-  background-color: #e04d2b;
+  background-color: #c2410c;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 90, 54, 0.2);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.2);
 }
 
 .next-button:active {
-  background-color: #e04d2b;
+  background-color: #c2410c;
   transform: translateY(0);
 }
 
