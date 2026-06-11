@@ -52,7 +52,7 @@ function CarouselItem({
       className={`relative flex flex-shrink-0 flex-col justify-between bg-white border border-zinc-200 rounded-2xl overflow-hidden cursor-grab active:cursor-grabbing p-6 shadow-sm select-none ${itemClassName}`}
       style={{
         width: itemWidth,
-        rotateY: visibleItems === 1 ? rotateY : 0,
+        rotateY: 0,
         transformStyle: "preserve-3d",
       }}
       transition={transition}

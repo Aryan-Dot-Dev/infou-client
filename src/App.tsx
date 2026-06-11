@@ -35,11 +35,11 @@ function LandingPageFallback() {
             </div>
 
             <div className="col-span-2 lg:col-span-6 order-1 lg:order-2 text-center flex flex-col items-center justify-center">
-              <span className="font-sans text-base sm:text-lg font-extrabold tracking-[0.25em] uppercase text-primary mb-4 block select-none">
+              <span className="font-sans text-base sm:text-lg font-extrabold tracking-[0.25em] uppercase text-[#ea580c] mb-4 block select-none">
                 Introducing
               </span>
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-zinc-900 leading-[1.1] text-center">
-                AI Funding Search Engine for <span className="text-primary">Businesses</span>
+                AI Funding Search Engine for <span className="text-[#ea580c]">Businesses</span>
               </h1>
               <p className="mt-6 text-lg text-zinc-505 leading-relaxed text-center max-w-xl mx-auto">
                 1200+ funding opportunities exist across India. Our AI tool finds your best matches in 30 seconds and our experts handle everything after.

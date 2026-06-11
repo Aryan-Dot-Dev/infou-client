@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Award, ShieldCheck, Zap, HeartHandshake, Heart, Info, Briefcase, Sparkles } from "lucide-react";
-import { ScrollStack, ScrollStackItem } from "./ScrollStack";
 
 interface TeamMember {
   id: string;
@@ -139,45 +138,11 @@ function ProfileCard({ member, index }: { member: TeamMember; index: number }) {
 }
 
 export function FounderCard() {
-  const [isTabletOrDesktop, setIsTabletOrDesktop] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsTabletOrDesktop(window.innerWidth >= 640);
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  if (isTabletOrDesktop) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-7xl mx-auto px-4 py-8 z-10 relative">
-        {team.map((member, index) => (
-          <ProfileCard key={member.id} member={member} index={index} />
-        ))}
-      </div>
-    );
-  }
-
   return (
-    <div className="w-full max-w-md mx-auto z-10 relative">
-      <ScrollStack
-        useWindowScroll={true}
-        itemDistance={50}
-        itemStackDistance={24}
-        stackPosition="10%"
-        scaleEndPosition="4%"
-        baseScale={0.88}
-        rotationAmount={1}
-        blurAmount={1}
-      >
-        {team.map((member, index) => (
-          <ScrollStackItem key={member.id}>
-            <ProfileCard member={member} index={index} />
-          </ScrollStackItem>
-        ))}
-      </ScrollStack>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-7xl mx-auto px-4 py-8 z-10 relative">
+      {team.map((member, index) => (
+        <ProfileCard key={member.id} member={member} index={index} />
+      ))}
     </div>
   );
 }

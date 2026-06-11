@@ -624,7 +624,7 @@ export function LandingPage() {
               </span>
               <h1 className="text-[32px] sm:text-[40px] md:text-5xl lg:text-[40px] xl:text-[48px] 2xl:text-6xl font-extrabold tracking-tight text-zinc-900 leading-[1.15] lg:leading-[1.1] text-center">
                 <span className="sm:whitespace-nowrap">AI Funding Search Engine for</span>
-                <span className="block text-[#ea580c] notranslate mt-2 sm:mt-3">
+                <span className="block text-[#ea580c] notranslate">
                   <TextType
                     text={HERO_ROTATING_TEXTS}
                     as="span"
