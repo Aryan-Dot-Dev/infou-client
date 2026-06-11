@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
 import { LanguageProvider } from "./lib/i18n";
@@ -204,6 +205,9 @@ export function App() {
         <Suspense fallback={null}>
           <ChatbotWidget />
         </Suspense>
+
+        {/* Vercel Web Analytics */}
+        <Analytics />
       </div>
     </LanguageProvider>
   );
