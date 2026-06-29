@@ -55,9 +55,9 @@ const team: TeamMember[] = [
     id: "compliance",
     name: "Yatharth Chopra",
     age: "",
-    role: "Data Analyst",
+    role: "Senior Data Analyst",
     tagline: "",
-    bio: "Backend Engineer powering our AI applications through his expertise in backend and data handling",
+    bio: "Senior Backend Engineer powering our AI applications through his expertise in backend and data handling",
     image: "https://imgh.in/host/78ea4b",
     icon: <ShieldCheck className="w-4 h-4" />,
     verified: true,
@@ -65,22 +65,6 @@ const team: TeamMember[] = [
     stats: [
       { label: "Audits Lead", value: "300+" },
       { label: "Capital Mapped", value: "₹15B+" },
-    ],
-  },
-  {
-    id: "cto",
-    name: "Adarsh Sharma",
-    age: "",
-    role: "Senior Advisor",
-    tagline: "",
-    bio: "Architect of our AI search and classification engine, parsing state and national scheme directives.",
-    image: "https://imgh.in/host/r01dgz",
-    icon: <HeartHandshake className="w-4 h-4" />,
-    verified: true,
-    interests: ["AI/ML", "Search Engineering", "Policy Parsing"],
-    stats: [
-      { label: "Directives Indexed", value: "10k+" },
-      { label: "Accuracy", value: "99.8%" },
     ],
   },
 ];
@@ -139,7 +123,7 @@ function ProfileCard({ member, index }: { member: TeamMember; index: number }) {
 
 export function FounderCard() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-7xl mx-auto px-4 py-8 z-10 relative">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-7xl mx-auto px-4 py-8 z-10 relative">
       {team.map((member, index) => (
         <ProfileCard key={member.id} member={member} index={index} />
       ))}
