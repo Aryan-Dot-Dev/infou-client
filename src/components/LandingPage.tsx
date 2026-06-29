@@ -691,7 +691,7 @@ export function LandingPage() {
 
             <div className="col-span-1 lg:col-span-6 lg:order-2 text-center flex flex-col items-center justify-center">
               <span className="font-sans text-base sm:text-lg font-bold tracking-widest uppercase text-[#ea580c] mb-4 block select-none">
-                Introducing <span className="text-black font-bold ml-1">Lilly</span>
+                Introducing
               </span>
               <h1 className="text-[32px] sm:text-[40px] md:text-5xl lg:text-[40px] xl:text-[48px] 2xl:text-6xl font-extrabold tracking-tight text-zinc-900 leading-[1.15] lg:leading-[1.1] text-center">
                 <span className="sm:whitespace-nowrap">AI Funding Search Engine for</span>

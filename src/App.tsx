@@ -37,7 +37,7 @@ function LandingPageFallback() {
 
             <div className="col-span-2 lg:col-span-6 order-1 lg:order-2 text-center flex flex-col items-center justify-center">
               <span className="font-sans text-xs sm:text-sm font-semibold tracking-widest uppercase text-[#ea580c] mb-4 block select-none">
-                Introducing <span className="text-black font-bold ml-1">Lilly</span>
+                Introducing
               </span>
               <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-zinc-900 leading-[1.1] text-center">
                 AI Funding Search Engine for <span className="text-[#ea580c]">Businesses</span>
